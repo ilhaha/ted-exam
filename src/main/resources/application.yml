@@ -1,8 +1,0 @@
-captcha:
-  sms:
-    # 短信模板ID
-    template-id: "your_template_id"
-    # 验证码长度
-    length: 6
-    # 验证码有效期（分钟）
-    expiration-in-minutes: 5 
