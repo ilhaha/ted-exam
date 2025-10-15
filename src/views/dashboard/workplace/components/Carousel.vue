@@ -20,6 +20,8 @@
 </template>
 
 <script setup lang="ts">
+import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios'
+import qs from 'query-string'
 import { isHttp } from '@/utils/validate'
 
 export interface DataItem {
@@ -31,15 +33,32 @@ export interface DataItem {
 const images = ref<DataItem[]>([
   {
     name: '公众号',
-    img: `https://continew.top/images/sponsor/ads/cn-qrcode.jpg?${new Date().getTime()}`,
-    url: 'https://continew.top/discussion.html',
+    img: `https://continew.top/qrcode-text.jpg?${new Date().getTime()}`,
+    url: 'https://continew.top/about/intro.html',
   },
   {
     name: '赞助',
-    img: `https://continew.top/images/sponsor/ads/cn-sponsor.jpg?${new Date().getTime()}`,
-    url: 'https://continew.top/sponsor/',
+    img: `https://continew.top/sponsor.jpg?${new Date().getTime()}`,
+    url: 'https://continew.top/sponsor.html',
   },
 ])
+
+const get = <T = unknown>(url: string, params?: object, config?: AxiosRequestConfig): Promise<ApiRes<T>> => {
+  return new Promise((resolve, reject) => {
+    axios
+      .request<T>({
+        method: 'get',
+        url,
+        params,
+        paramsSerializer: (obj) => {
+          return qs.stringify(obj)
+        },
+        ...config,
+      })
+      .then((res: AxiosResponse) => resolve(res.data))
+      .catch((err: { msg: string }) => reject(err))
+  })
+}
 
 const dataList = ref<DataItem[]>([])
 const loading = ref(false)
@@ -47,18 +66,12 @@ const loading = ref(false)
 const getDataList = async () => {
   try {
     loading.value = true
-    const base = `https://continew.top`
-    const data = await (await fetch(`${base}/sponsor.json?${new Date().getTime()}`)).json()
+    const { data } = await get('https://api.charles7c.top/sponsor/platinum')
     if (data) {
-      // 只获取 special 和 platinum 赞助者
-      const sponsors = [...data.special, ...data.platinum]
-      sponsors.forEach((item) => {
-        if (!item.name) {
-          return
-        }
+      data.forEach((item) => {
         dataList.value.push({
           name: item.name,
-          img: isHttp(item.img) ? item.img : `${base}/images/sponsor/ads/${item.img}`,
+          img: isHttp(item.img) ? item.img : `https://continew.top${item.img}`,
           url: item.url,
         })
       })

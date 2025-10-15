@@ -8,151 +8,183 @@
     size="large"
     @submit="handleLogin"
   >
+    <!-- 角色选择（下拉选择框） -->
+    <a-form-item field="role">
+      <a-select v-model="form.role" placeholder="请选择角色">
+        <a-option value="1">考生</a-option>
+        <a-option value="2">监考</a-option>
+        <a-option value="3">机构</a-option>
+      </a-select>
+    </a-form-item>
+
     <a-form-item field="username" hide-label>
-      <a-input v-model="form.username" placeholder="请输入身份证号" allow-clear />
+      <a-input v-model="form.username" placeholder="请输入用户名" allow-clear />
     </a-form-item>
-    <a-form-item field="examNumber" hide-label>
-      <a-input v-model="form.examNumber" placeholder="请输入准考证号" allow-clear />
+    <a-form-item field="password" hide-label>
+      <a-input-password v-model="form.password" placeholder="请输入密码" />
     </a-form-item>
+
+    <!-- 验证码输入框 -->
+    <a-form-item v-if="isCaptchaEnabled" field="captcha" hide-label>
+      <a-input v-model="form.captcha" placeholder="请输入验证码" :max-length="4" allow-clear style="flex: 1 1" />
+      <div class="captcha-container" @click="getCaptcha">
+        <img :src="captchaImgBase64" alt="验证码" class="captcha" />
+        <div v-if="form.expired" class="overlay">
+          <p>已过期，请刷新</p>
+        </div>
+      </div>
+    </a-form-item>
+
     <a-form-item>
-      <a-row justify="end" align="center" class="w-full">
-        <!-- 监考员链接，点击弹窗 -->
-        <a-link @click.prevent="showProctorModal = true">我是监考员</a-link>
+      <a-row justify="space-between" align="center" class="w-full">
+        <a-checkbox v-model="loginConfig.rememberMe">记住我</a-checkbox>
+        <div>
+          <button class="logon-btn" type="button" @click="handleLoginWindow">考生注册</button>
+          <button class="logon-btn" type="button" @click="handleForgotWindow">忘记密码</button>
+        </div>
       </a-row>
     </a-form-item>
+
     <a-form-item>
       <a-space direction="vertical" fill class="w-full">
-        <a-button class="btn" type="primary" :loading="loading" html-type="submit" size="large" long>进入考试</a-button>
+        <a-button class="btn" type="primary" :loading="loading" html-type="submit" size="large" long>立即登录</a-button>
       </a-space>
     </a-form-item>
   </a-form>
-
-<a-modal
-  v-model:visible="showProctorModal"
-  title="请输入开考密码"
-  :mask-closable="false"
-  :closable="false"  
-  :footer="null"     
->
-  <a-input
-    v-model="proctorPassword"
-    type="password"
-    placeholder="请输入开考密码"
-    @keydown.enter="handleConfirmPassword"
-  />
-  <div style="margin-top: 16px; text-align: right;">
-  <a-space>
-    <a-button @click="handleCancel">取消</a-button>
-    <a-button @click="handleConfirmPassword" type="primary">确认</a-button>
-  </a-space>
-</div>
-</a-modal>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { Message } from '@arco-design/web-vue'
-import { useRouter } from 'vue-router'
-import { useUserStore, useTabsStore } from '@/stores'
-import { useFullscreen } from '@vueuse/core'
+import { inject } from 'vue'
+import { type FormInstance, Message } from '@arco-design/web-vue'
+import { useStorage } from '@vueuse/core'
+import { getImageCaptcha } from '@/apis/common'
+import { useTabsStore, useUserStore } from '@/stores'
 import { encryptByRsa } from '@/utils/encrypt'
+import { getRoleFlag } from '@/utils/auth'
+import { forgotFormKey, loginFormKey } from '@/utils/inject-keys'
+import {findIsAccount} from "@/apis";
 
-const formRef = ref()
+const loginConfig = useStorage('login-config', {
+  rememberMe: true,
+  username: '350525197306124505', // 演示默认值
+  password: 'admin123', // 演示默认值
+  // username: debug ? 'admin' : '', // 演示默认值
+  // password: debug ? 'admin123' : '', // 演示默认值
+})
+// 是否启用验证码
+const isCaptchaEnabled = ref(true)
+// 验证码图片
+const captchaImgBase64 = ref()
+
+const formRef = ref<FormInstance>()
 const form = reactive({
   username: '',
-  examNumber: ''
+  password: '',
+  captcha: '',
+  role: '1',
+  uuid: '',
+  expired: false,
 })
-const rules = {
-  username: [
-    { required: true, message: '请输入身份证号' },
-  ],
-  examNumber: [
-    { required: true, message: '请输入准考证号' }]
+const rules: FormInstance['rules'] = {
+  username: [{ required: true, message: '请输入用户名' }],
+  password: [{ required: true, message: '请输入密码' }],
+  captcha: [{ required: isCaptchaEnabled.value, message: '请输入验证码' }],
 }
 
-const loading = ref(false)
-const router = useRouter()
+// 验证码过期定时器
+let timer
+const startTimer = (expireTime: number, curTime = Date.now()) => {
+  if (timer) {
+    clearTimeout(timer)
+  }
+  const remainingTime = expireTime - curTime
+  if (remainingTime <= 0) {
+    form.expired = true
+    return
+  }
+  timer = setTimeout(() => {
+    form.expired = true
+  }, remainingTime)
+}
+// 组件销毁时清理定时器
+onBeforeUnmount(() => {
+  if (timer) {
+    clearTimeout(timer)
+  }
+})
+
+// 获取验证码
+const getCaptcha = () => {
+  getImageCaptcha().then((res) => {
+    const { uuid, img, expireTime, isEnabled } = res.data
+    isCaptchaEnabled.value = isEnabled
+    captchaImgBase64.value = img
+    form.uuid = uuid
+    form.expired = false
+    startTimer(expireTime, Number(res.timestamp))
+  })
+}
+
 const userStore = useUserStore()
 const tabsStore = useTabsStore()
-
-// 监考员弹窗控制
-const showProctorModal = ref(false)
-const proctorPassword = ref('')
-
-// 监考员开考密码确认逻辑
-const handleConfirmPassword = async () => {
-  const password = proctorPassword.value
-
-  if (!password) {
-    Message.error('请输入开考密码')
-    return
-  }
-
-  const passwordPattern = /^\d{6}$/
-  if (!passwordPattern.test(password)) {
-    Message.error('密码格式不正确，应为6位数字')
-    return
-  }
-
-  try {
-    await userStore.invigilatortLogin({
-      username: encryptByRsa("INVIGILATOR-LOGIN"),
-      examPassword: encryptByRsa(password) || '',
-      password: encryptByRsa("INVIGILATOR-LOGIN"),
-      rememberMe: true
-    })
-    tabsStore.reset()
-    await router.push('/invigilator')
-    Message.success('欢迎使用')
-    // toggle()
-  } catch (error) {
-  } finally {
-    loading.value = false
-  }
-}
-
-const handleCancel = () => {
-  showProctorModal.value = false;
-  proctorPassword.value = ''
-}
-
-// 登录提交逻辑
+const router = useRouter()
+const loading = ref(false)
+// 登录
 const handleLogin = async () => {
-
-  if ((await formRef.value?.validate())) return
-
-  if(!/^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/.test(form.username)) {
-    Message.error("身份证格式不正确")
-    return
-  }
-
-  if(!/^\d{14}$/.test(form.examNumber)){
-    Message.error("准考证号为是14位数字")
-    return
-  }  
-
   try {
+    const isInvalid = await formRef.value?.validate()
+    if (isInvalid) return
+    loading.value = true
+    // 验证账号是否存在
+    const isAccount = await findIsAccount(encryptByRsa(form.username) || '')
+    if (isAccount.data) {
+      Message.error('账号未注册')
+      return
+    }
     await userStore.accountLogin({
       username: encryptByRsa(form.username) || '',
-      examNumber: encryptByRsa(form.examNumber) || '',
-      password: encryptByRsa("EXAM-LOGIN"),
-      rememberMe: true
+      password: encryptByRsa(form.password) || '',
+      captcha: form.captcha,
+      uuid: form.uuid,
+      role: form.role,
     })
     tabsStore.reset()
-    await router.push('/candidates')
+    const { redirect, ...othersQuery } = router.currentRoute.value.query
+    const { rememberMe } = loginConfig.value
+    loginConfig.value.username = rememberMe ? form.username : ''
+    const roleFlag = getRoleFlag()
+    await router.push({
+      path: roleFlag === '1' ? ((redirect as string) || '/') : roleFlag === '2' ? ((redirect as string) || '/invigilate') : ((redirect as string) || '/organization/index'),
+      query: {
+        ...othersQuery,
+      },
+    })
     Message.success('欢迎使用')
-    // toggle()
   } catch (error) {
+    console.error(error)
+    getCaptcha()
+    form.captcha = ''
   } finally {
     loading.value = false
   }
 }
+
+const loginWindow = inject(loginFormKey)
+const forgotWindow = inject(forgotFormKey)
+
+const handleLoginWindow = () => {
+  loginWindow.value = true
+}
+
+const handleForgotWindow = () => {
+  forgotWindow.value = true
+}
+onMounted(() => {
+  getCaptcha()
+})
 </script>
 
 <style scoped lang="scss">
-.btn {
-  height: 40px;
-}
 .arco-input-wrapper,
 :deep(.arco-select-view-single) {
   height: 40px;
@@ -179,11 +211,21 @@ const handleLogin = async () => {
   border-color: rgb(var(--arcoblue-6));
 }
 
+.captcha {
+  width: 111px;
+  height: 36px;
+  margin: 0 0 0 5px;
+}
 
 .btn {
   height: 40px;
 }
 
+.captcha-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
 
 .overlay {
   position: absolute;
@@ -200,5 +242,19 @@ const handleLogin = async () => {
 .overlay p {
   font-size: 12px;
   color: white;
+}
+
+.logon-btn {
+  width: 64px;
+  height: 24px;
+  color: #165dff;
+  border: none;
+  margin-right: 15px;
+  background-color: white;
+}
+
+.logon-btn:hover {
+  color: rgb(var(--primary-5));
+  background-color: var(--color-fill-2);
 }
 </style>

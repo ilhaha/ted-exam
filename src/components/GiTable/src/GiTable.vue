@@ -33,14 +33,35 @@
             </a-doption>
           </template>
         </a-dropdown>
-        <ColumnSetting
-          v-if="showSettingColumnBtn"
-          ref="columnSettingRef"
-          v-model:columns="innerColumns"
-          :disabled-keys="disabledColumnKeys"
-          :table-id="tableId"
-          @visible-columns-change="handleVisibleColumnsChange"
-        />
+        <a-popover
+          v-if="showSettingColumnBtn" trigger="click" position="br"
+          :content-style="{ minWidth: '120px', padding: '6px 8px 10px' }"
+        >
+          <a-tooltip content="列设置">
+            <a-button>
+              <template #icon>
+                <icon-settings />
+              </template>
+            </a-button>
+          </a-tooltip>
+          <template #content>
+            <div class="gi-table__draggable">
+              <VueDraggable v-model="settingColumnList">
+                <div v-for="item in settingColumnList" :key="item.title" class="drag-item">
+                  <div class="drag-item__move"><icon-drag-dot-vertical /></div>
+                  <a-checkbox v-model:model-value="item.show" :disabled="item.disabled">{{ item.title }}</a-checkbox>
+                </div>
+              </VueDraggable>
+            </div>
+            <a-divider :margin="6" />
+            <a-row justify="center">
+              <a-button type="primary" size="mini" long @click="resetSettingColumns">
+                <template #icon><icon-refresh /></template>
+                <template #default>重置</template>
+              </a-button>
+            </a-row>
+          </template>
+        </a-popover>
         <a-tooltip content="全屏">
           <a-button v-if="showFullscreenBtn" @click="toggleFullscreen">
             <template #icon>
@@ -66,7 +87,6 @@
           :scrollbar="true"
           :data="data"
           column-resizable
-          @change="handleTableChange"
         >
           <template v-for="key in Object.keys(slots)" :key="key" #[key]="scope">
             <slot :key="key" :name="key" v-bind="scope" />
@@ -80,9 +100,9 @@
 <script setup lang="ts" generic="T extends TableData">
 import { computed, ref, watch } from 'vue'
 import type { DropdownInstance, TableColumnData, TableData, TableInstance } from '@arco-design/web-vue'
+import { VueDraggable } from 'vue-draggable-plus'
 import { omit } from 'lodash-es'
 import type { TableProps } from './type'
-import ColumnSetting from './components/ColumnSetting.vue'
 
 defineOptions({ name: 'GiTable' })
 
@@ -90,15 +110,12 @@ defineOptions({ name: 'GiTable' })
 const props = withDefaults(defineProps<Props>(), {
   title: '',
   disabledColumnKeys: () => [],
-  disabledTools: () => [],
   data: () => [],
 })
 
 /** Emits 类型定义 */
 const emit = defineEmits<{
   (e: 'refresh'): void
-  (e: 'update:columns', columns: TableColumnData[]): void
-  (e: 'change', ...args: any[]): void
 }>()
 
 /** Slots 类型定义 */
@@ -135,16 +152,15 @@ interface Props extends TableProps {
   disabledTools?: string[]
   /** 表格数据 */
   data: T[]
-  /** 表格标识，用于存储列设置 */
-  tableId?: string
 }
 
 const slots = useSlots()
-const attrs = useAttrs()
+
+/** 表格属性计算 */
+const tableProps = computed(() => omit(props, ['title', 'disabledColumnKeys']))
 
 /** 组件状态 */
 const tableRef = useTemplateRef('tableRef')
-const columnSettingRef = ref<InstanceType<typeof ColumnSetting> | null>(null)
 const stripe = ref(false)
 const size = ref<TableInstance['size']>('large')
 const isBordered = ref(false)
@@ -181,55 +197,69 @@ const showFullscreenBtn = computed(() => !props.disabledTools?.includes('fullscr
 /** 列设置相关逻辑 */
 const showSettingColumnBtn = computed(() => {
   const columns = props.columns as TableColumnData[] | undefined
-  return !props.disabledTools?.includes('setting') && Boolean(columns?.length)
+  return Boolean(columns?.length)
 })
 
-/** 内部维护列数据 */
-const innerColumns = ref<TableColumnData[]>([])
-
-/** 监听 props.columns 变化 */
-watch(() => props.columns, (newColumns) => {
-  if (newColumns && innerColumns.value.length === 0) {
-    innerColumns.value = [...newColumns]
-  }
-}, { immediate: true })
-
-/** 实际显示的列（由ColumnSetting组件计算） */
-const tableColumns = ref<TableColumnData[]>([])
-
-/** 处理列设置组件的可见列变化 */
-const handleVisibleColumnsChange = (columns: TableColumnData[]) => {
-  tableColumns.value = columns
+/** 列设置项类型 */
+interface SettingColumnItem {
+  /** 列标题 */
+  title: string
+  /** 列标识 */
+  key: string
+  /** 是否显示 */
+  show: boolean
+  /** 是否禁用 */
+  disabled: boolean
 }
 
-/** 表格属性计算 */
-const tableProps = computed(() => ({
-  ...omit(props, ['title', 'disabledColumnKeys', 'disabledTools']),
-  ...attrs,
-}))
+const settingColumnList = ref<SettingColumnItem[]>([])
+
+/** 重置列设置 */
+const resetSettingColumns = () => {
+  if (!props.columns) {
+    settingColumnList.value = []
+    return
+  }
+
+  const columns = props.columns as TableColumnData[]
+  settingColumnList.value = columns.map((column) => {
+    const key = column.dataIndex || (typeof column.title === 'string' ? column.title : '')
+    return {
+      key,
+      title: typeof column.title === 'string' ? column.title : '',
+      show: column.show ?? true,
+      disabled: props.disabledColumnKeys.includes(key),
+    }
+  })
+}
+
+/** 监听属性变化，重置列设置 */
+watch(
+  () => props.columns,
+  () => resetSettingColumns(),
+  { immediate: true },
+)
 
 /** 计算显示的列 */
 const visibleColumns = computed(() => {
-  // 如果tableColumns有值，使用tableColumns
-  if (tableColumns.value && tableColumns.value.length > 0) {
-    return tableColumns.value
-  }
+  if (!props.columns) return []
 
-  // 否则使用原始的columns
-  return props.columns?.filter((col) => col.show !== false) || []
+  const columns = props.columns as TableColumnData[]
+  const columnMap = new Map(
+    columns.map((col) => [
+      col.dataIndex || (typeof col.title === 'string' ? col.title : ''),
+      col,
+    ]),
+  )
+
+  // 按照设置列表的顺序返回可见列
+  return settingColumnList.value
+    .filter((item) => item.show)
+    .map((item) => columnMap.get(item.key))
+    .filter(Boolean) as TableColumnData[]
 })
 
-// 处理表格变化的函数
-const handleTableChange = (...args: any[]) => {
-  // 将接收到的参数传递给父组件
-  emit('change', ...args)
-}
-
-defineExpose({
-  tableRef,
-  resetColumns: () => columnSettingRef.value?.resetColumns?.(),
-  saveColumns: () => columnSettingRef.value?.saveColumns?.(),
-})
+defineExpose({ tableRef })
 </script>
 
 <style lang="scss" scoped>

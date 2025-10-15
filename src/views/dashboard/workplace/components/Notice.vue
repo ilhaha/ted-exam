@@ -6,7 +6,7 @@
     :body-style="{ padding: '15px 20px 13px 20px' }"
   >
     <template #extra>
-      <a-link @click="open">更多</a-link>
+      <a-link @click="router.replace({ path: '/system/notice' })">更多</a-link>
     </template>
     <a-skeleton v-if="loading" :loading="loading" :animation="true">
       <a-skeleton-line :rows="5" />
@@ -31,12 +31,16 @@
       </div>
     </div>
   </a-card>
+
+  <NoticeDetailModal ref="NoticeDetailModalRef" />
 </template>
 
 <script setup lang="ts">
 import { type DashboardNoticeResp, listDashboardNotice } from '@/apis'
 import { useDict } from '@/hooks/app'
+import NoticeDetailModal from '@/views/system/notice/NoticeDetailModal.vue'
 
+const router = useRouter()
 const { notice_type } = useDict('notice_type')
 
 const dataList = ref<DashboardNoticeResp[]>([])
@@ -52,15 +56,10 @@ const getDataList = async () => {
   }
 }
 
-const router = useRouter()
+const NoticeDetailModalRef = ref<InstanceType<typeof NoticeDetailModal>>()
 // 详情
-const onDetail = (id: number) => {
-  router.push({ path: '/user/notice', query: { id } })
-}
-
-// 打开消息中心
-const open = () => {
-  router.push({ path: '/user/message', query: { tab: 'notice' } })
+const onDetail = (id: string) => {
+  NoticeDetailModalRef.value?.onDetail(id)
 }
 
 onMounted(() => {

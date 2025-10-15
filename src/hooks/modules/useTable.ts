@@ -41,9 +41,7 @@ export function useTable<T extends U, U = T>(api: Api<T>, options?: Options<T, U
   // 多选
   const selectedKeys = ref<(string | number)[]>([])
   const select: TableInstance['onSelect'] = (rowKeys) => {
-    if (Array.isArray(rowKey)) {
-      selectedKeys.value = rowKeys
-    }
+    selectedKeys.value = rowKeys
   }
 
   // 全选
@@ -67,21 +65,14 @@ export function useTable<T extends U, U = T>(api: Api<T>, options?: Options<T, U
   // 删除
   const handleDelete = async <T>(
     deleteApi: () => Promise<ApiRes<T>>,
-    options?: { title?: string, content?: string, successTip?: string, showModal?: boolean, multiple?: boolean },
+    options?: { title?: string, content?: string, successTip?: string, showModal?: boolean },
   ): Promise<boolean | undefined> => {
     const onDelete = async () => {
       try {
         const res = await deleteApi()
         if (res.success) {
-          // 计算新总页数
-          const deleteNum = options?.multiple ? selectedKeys.value.length : 1
-          const totalPage = Math.ceil((pagination.total - deleteNum) / pagination.pageSize)
-          // 修正当前页码
-          if (pagination.current > totalPage) {
-            pagination.current = totalPage > 0 ? totalPage : 1
-          }
-          options?.multiple && (selectedKeys.value = [])
           Message.success(options?.successTip || '删除成功')
+          selectedKeys.value = []
           await getTableData()
         }
         return res.success

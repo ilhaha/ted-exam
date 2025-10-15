@@ -1,6 +1,5 @@
-import { type ExamCandidateInfoVO } from '@/apis'
-
 const TOKEN_KEY = 'token'
+const ROLE_FLAG = 'role_flag'
 
 const isLogin = () => {
   return !!localStorage.getItem(TOKEN_KEY)
@@ -18,5 +17,16 @@ const clearToken = () => {
   localStorage.removeItem(TOKEN_KEY)
 }
 
+const getRoleFlag = () => {
+  return localStorage.getItem(ROLE_FLAG)
+}
 
-export { isLogin, getToken, setToken, clearToken}
+const setRoleFlag = (role_flag: string) => {
+  localStorage.setItem(ROLE_FLAG, role_flag)
+}
+
+const clearRoleFlag = () => {
+  localStorage.removeItem(ROLE_FLAG)
+}
+
+export { isLogin, getToken, setToken, clearToken ,getRoleFlag,setRoleFlag,clearRoleFlag}

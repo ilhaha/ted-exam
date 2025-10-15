@@ -1,6 +1,8 @@
 import type * as T from './type'
 import http from '@/utils/http'
 
+export type * from './type'
+
 const BASE_URL = '/system/user'
 
 /** @desc 查询用户列表 */
@@ -29,8 +31,8 @@ export function updateUser(data: any, id: string) {
 }
 
 /** @desc 删除用户 */
-export function deleteUser(id: string) {
-  return http.del(`${BASE_URL}`, { ids: [id] })
+export function deleteUser(ids: string | Array<string>) {
+  return http.del(`${BASE_URL}/${ids}`)
 }
 
 /** @desc 导出用户 */
@@ -61,4 +63,14 @@ export function resetUserPwd(data: any, id: string) {
 /** @desc 分配角色 */
 export function updateUserRole(data: { roleIds: string[] }, id: string) {
   return http.patch(`${BASE_URL}/${id}/role`, data)
+}
+
+/** @desc 获取考生列表 */
+export function getStudentList(params: any, nickname: any) {
+  return http.get(`${BASE_URL}/getStudentList?${params}`, { nickname })
+}
+
+/** @desc 获取考生资料状态 */
+export function getStudentDocumentTypeStatus(documentTypeList: any) {
+  return http.get(`${BASE_URL}/getStudentDocumentTypeStatus`, { documentTypeList })
 }

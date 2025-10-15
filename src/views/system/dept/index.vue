@@ -1,5 +1,5 @@
 <template>
-  <GiPageLayout>
+  <div class="gi_table_page">
     <div class="header-actions">
       <a-radio-group v-model="viewType" type="button" size="small" style="margin-bottom: 16px;">
         <a-radio value="table">表格视图</a-radio>
@@ -9,6 +9,7 @@
     <GiTable
       v-show="viewType === 'table'"
       ref="tableRef"
+      title=""
       row-key="id"
       :data="dataList"
       :columns="columns"
@@ -32,7 +33,7 @@
         </a-button>
       </template>
       <template #toolbar-right>
-        <a-button v-permission="['system:dept:create']" type="primary" @click="onAdd()">
+        <a-button v-permission="['system:dept:add']" type="primary" @click="onAdd()">
           <template #icon><icon-plus /></template>
           <template #default>新增</template>
         </a-button>
@@ -60,7 +61,7 @@
           >
             删除
           </a-link>
-          <a-link v-permission="['system:dept:create']" title="新增" @click="onAdd(record.id)">新增</a-link>
+          <a-link v-permission="['system:dept:add']" title="新增" @click="onAdd(record.id)">新增</a-link>
         </a-space>
       </template>
     </GiTable>
@@ -88,15 +89,15 @@
       </a-card>
     </div>
     <DeptAddModal ref="DeptAddModalRef" :depts="dataList" @save-success="search" />
-  </GiPageLayout>
+  </div>
 </template>
 
 <script setup lang="ts">
 import 'vue3-tree-org/lib/vue3-tree-org.css'
 import { Vue3TreeOrg } from 'vue3-tree-org'
-import type { TableInstance } from '@arco-design/web-vue'
 import DeptAddModal from './DeptAddModal.vue'
 import { type DeptQuery, type DeptResp, deleteDept, exportDept, listDept } from '@/apis/system/dept'
+import type { TableInstanceColumns } from '@/components/GiTable/type'
 import type GiTable from '@/components/GiTable/index.vue'
 import { useDownload, useTable } from '@/hooks'
 import { isMobile } from '@/utils'
@@ -157,7 +158,7 @@ const dataList = computed(() => {
   return searchData(name.value)
 })
 
-const columns: TableInstance['columns'] = [
+const columns: TableInstanceColumns[] = [
   { title: '名称', dataIndex: 'name', minWidth: 170, ellipsis: true, tooltip: true },
   { title: '状态', dataIndex: 'status', slotName: 'status', align: 'center' },
   { title: '排序', dataIndex: 'sort', align: 'center', show: false },
@@ -174,7 +175,7 @@ const columns: TableInstance['columns'] = [
     width: 160,
     align: 'center',
     fixed: !isMobile() ? 'right' : undefined,
-    show: has.hasPermOr(['system:dept:update', 'system:dept:delete', 'system:dept:create']),
+    show: has.hasPermOr(['system:dept:update', 'system:dept:delete', 'system:dept:add']),
   },
 ]
 

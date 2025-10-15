@@ -27,7 +27,7 @@ export function updateDept(data: any, id: string) {
 
 /** @desc 删除部门 */
 export function deleteDept(id: string) {
-  return http.del(`${BASE_URL}`, { ids: [id] })
+  return http.del(`${BASE_URL}/${id}`)
 }
 
 /** @desc 导出部门 */

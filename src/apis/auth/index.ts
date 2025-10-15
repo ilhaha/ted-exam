@@ -7,16 +7,7 @@ const BASE_URL = '/auth'
 
 /** @desc 账号登录 */
 export function accountLogin(req: T.AccountLoginReq) {
-  return http.post<T.LoginResp>(`${BASE_URL}/exam/login`, req)
-}
-
-/**
- * 开考密码登录
- * @param req 
- * @returns 
- */
-export function invigilatorLogin(req: T.AccountLoginReq) {
-  return http.post<T.LoginResp>(`${BASE_URL}/invigilator/login`, req)
+  return http.post<T.LoginResp>(`${BASE_URL}/candidatesOrInvite/login`, req)
 }
 
 /** @desc 手机号登录 */
@@ -52,4 +43,24 @@ export const getUserInfo = () => {
 /** @desc 获取路由信息 */
 export const getUserRoute = () => {
   return http.get<T.RouteItem[]>(`${BASE_URL}/user/route`)
+}
+
+/** @desc 注册账号 */
+export function loginIdentity(data: any) {
+  return http.post(`${BASE_URL}/login/identity`, data)
+}
+
+/** @desc 忘记密码 */
+export function forgotPassword(data: any) {
+  return http.post(`${BASE_URL}/user/forgotPassword`, data)
+}
+
+/** @desc 验证手机号码是否存在 */
+export function findIsPhone(phone: any) {
+  return http.get(`${BASE_URL}/user/findIsPhone`, { phone })
+}
+
+/** @desc 查询账号是否存在 */
+export function findIsAccount(username: string) {
+  return http.get(`${BASE_URL}/candidatesOrInvite/findIsAccount`, { username })
 }

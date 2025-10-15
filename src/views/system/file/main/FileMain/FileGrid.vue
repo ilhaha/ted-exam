@@ -13,7 +13,7 @@
         scroll-to-close
       >
         <a-grid-item>
-          <div class="file-grid-item" @click.stop="handleClickFile(item)" @dblclick="handleDblclickFile(item)">
+          <div class="file-grid-item" @click.stop="handleClickFile(item)">
             <section class="file-grid-item__wrapper">
               <div class="file-icon">
                 <FileImage :data="item" :title="item.name"></FileImage>
@@ -51,7 +51,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'click', record: FileItem): void
-  (e: 'dblclick', record: FileItem): void
   (e: 'select', record: FileItem): void
   (e: 'right-menu-click', mode: string, item: FileItem): void
 }>()
@@ -72,11 +71,6 @@ const getFileName = (item: FileItem) => {
 // 点击事件
 const handleClickFile = (item: FileItem) => {
   emit('click', item)
-}
-
-// 双击事件
-const handleDblclickFile = (item: FileItem) => {
-  emit('dblclick', item)
 }
 
 // 选中事件

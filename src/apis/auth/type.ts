@@ -12,27 +12,7 @@ export interface UserInfo {
   registrationDate: string
   deptName: string
   roles: string[]
-  permissions: string[],
-  planId: number,
-  examNumber: string,
-  examTime: string,
-  planName: string,
-  classroomId:string,
-  classroomName:string,
-  role:string,
-  warningShortFilm:string
-}
-
-
-export interface ExamCandidateInfoVO {
-  planId: number
-  examNumber: string
-  examTime: string
-  planName: string
-  classroomId:string
-  classroomName:string
-  role:string
-  warningShortFilm:string
+  permissions: string[]
 }
 
 /** 路由类型 */
@@ -81,10 +61,8 @@ export interface AuthReq {
 export interface AccountLoginReq extends AuthReq {
   username: string
   password: string
-  examNumber:string
-  planName:string,
-  classroomId:string,
-  classroomName:string
+  captcha: string
+  uuid: string
 }
 
 /** 手机号登录请求参数 */
@@ -101,10 +79,7 @@ export interface EmailLoginReq extends AuthReq {
 
 /** 登录响应类型 */
 export interface LoginResp {
-  token: string,
-  examNumber:string,
-  examTime:string,
-  examCandidateInfoVO:ExamCandidateInfoVO,
+  token: string
   role: string
 }
 

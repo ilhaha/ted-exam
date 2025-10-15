@@ -46,5 +46,3 @@ export const OfficeTypes = ['ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'pdf']
 export const WordTypes = ['doc', 'docx']
 
 export const ExcelTypes = ['xls', 'xlsx']
-
-export const DirTypes = ['dir']

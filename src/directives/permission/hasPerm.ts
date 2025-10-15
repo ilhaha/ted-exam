@@ -3,7 +3,7 @@ import { useUserStore } from '@/stores'
 
 /**
  * @desc v-permission 操作权限处理
- * @desc 使用 v-permission="['system:user:create']"
+ * @desc 使用 v-permission="['system:user:add']"
  */
 function checkPermission(el: HTMLElement, binding: DirectiveBinding) {
   const userStore = useUserStore()

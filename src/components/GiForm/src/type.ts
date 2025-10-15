@@ -27,6 +27,7 @@ export type ColumnItemType =
   | 'auto-complete'
   | 'mention'
   | 'group-title'
+  | 'slot'
 
 export type ComponentProps =
   & A.InputInstance['$props']

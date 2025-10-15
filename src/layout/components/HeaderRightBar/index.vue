@@ -1,17 +1,6 @@
 <template>
   <a-row justify="end" align="center">
     <a-space size="medium">
-      <!-- 搜索 -->
-      <Search v-if="isDesktop" />
-      <!-- 项目配置 -->
-      <a-tooltip content="项目配置" position="bl">
-        <a-button size="mini" class="gi_hover_btn" @click="SettingDrawerRef?.open">
-          <template #icon>
-            <icon-settings :size="18" />
-          </template>
-        </a-button>
-      </a-tooltip>
-
       <!-- 消息通知 -->
       <a-popover
         position="bottom"
@@ -40,12 +29,6 @@
           </template>
         </a-button>
       </a-tooltip>
-
-      <!-- 暗黑模式切换 -->
-      <a-tooltip content="主题切换" position="bottom">
-        <GiThemeBtn></GiThemeBtn>
-      </a-tooltip>
-
       <!-- 管理员账户 -->
       <a-dropdown trigger="hover">
         <a-row align="center" :wrap="false" class="user">
@@ -55,11 +38,8 @@
           <icon-down />
         </a-row>
         <template #content>
-          <a-doption @click="router.push('/user/profile')">
+          <a-doption @click="handleRouter">
             <span>个人中心</span>
-          </a-doption>
-          <a-doption @click="router.push('/user/message')">
-            <span>消息中心</span>
           </a-doption>
           <a-divider :margin="0" />
           <a-doption @click="logout">
@@ -77,17 +57,16 @@
 import { Modal } from '@arco-design/web-vue'
 import { useFullscreen } from '@vueuse/core'
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import Message from './Message.vue'
 import SettingDrawer from './SettingDrawer.vue'
-import Search from './Search.vue'
 import { getUnreadMessageCount } from '@/apis'
 import { useUserStore } from '@/stores'
-import { getToken } from '@/utils/auth'
-import { useBreakpoint, useDevice } from '@/hooks'
+import { useBreakpoint } from '@/hooks'
+import { getRoleFlag, getToken } from '@/utils/auth'
 
 defineOptions({ name: 'HeaderRight' })
 
-const { isDesktop } = useDevice()
 const { breakpoint } = useBreakpoint()
 let socket: WebSocket
 onBeforeUnmount(() => {
@@ -145,11 +124,19 @@ const logout = () => {
         await userStore.logout()
         await router.replace('/login')
         return true
-      } catch (error) {
+      } catch {
         return false
       }
     },
   })
+}
+
+const handleRouter = () => {
+  if (getRoleFlag() === '1') {
+    router.push('/setting/profile')
+  } else {
+    window.open('/setting/profile', '_self')
+  }
 }
 
 onMounted(() => {

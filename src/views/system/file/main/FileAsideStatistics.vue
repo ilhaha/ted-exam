@@ -26,7 +26,6 @@ import { FileTypeList } from '@/constant/file'
 import { useChart } from '@/hooks'
 import { type FileStatisticsResp, getFileStatistics } from '@/apis/system'
 import { formatFileSize } from '@/utils'
-import mittBus from '@/utils/mitt'
 
 use([TitleComponent, TooltipComponent, LegendComponent, PieChart, CanvasRenderer])
 
@@ -107,9 +106,6 @@ const getStatisticsData = async () => {
 
 onMounted(() => {
   getStatisticsData()
-  mittBus.on('file-total-refresh', () => {
-    getStatisticsData()
-  })
 })
 </script>
 

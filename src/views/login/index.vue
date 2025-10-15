@@ -1,458 +1,385 @@
 <template>
-  <div v-if="isDesktop" class="login pc">
-    <h3 class="login-logo">
-      <img v-if="logo" :src="logo" alt="logo" />
-      <img v-else src="/logo.svg" alt="logo" />
-      <span>{{ title }}</span>
-    </h3>
-
-    <a-row align="stretch" class="login-box">
-      <a-col :xs="0" :sm="12" :md="13">
-        <div class="login-left">
-          <img class="login-left__img" src="@/assets/images/banner.png" alt="banner" />
+  <div class="login-container">
+    <!-- 顶部导航 -->
+    <div class="nav-header">
+      <div class="nav-content">
+        <div class="logo-section">
+          <img src="/logo.svg" alt="logo" class="logo" />
+          <h2>一信通特种设备作业人员考试系统</h2>
         </div>
-      </a-col>
-      <a-col :xs="24" :sm="12" :md="11">
-        <div class="login-right">
-          <EmailLogin v-if="isEmailLogin" />
-          <a-tabs v-else v-model:activeKey="activeTab" class="login-right__form">
-            <a-tab-pane key="1" title="身份证登录">
-              <component :is="AccountLogin" v-if="activeTab === '1'" />
-            </a-tab-pane>
-          </a-tabs>
-        </div>
-      </a-col>
-    </a-row>
+      </div>
+    </div>
 
+    <!-- 主要内容区 -->
+    <div class="main-content">
+      <a-row class="content-wrapper">
+        <!-- 左侧轮播和公告 -->
+        <a-col :span="16" class="left-col">
+          <div class="left-content">
+            <div class="carousel-info-section">
+              <div class="carousel-wrapper">
+                <Carousel />
+              </div>
+              <div class="info-wrapper">
+                <Info />
+              </div>
+            </div>
+          </div>
+        </a-col>
 
-    <GiThemeBtn class="theme-btn" />
-    <Background />
+        <!-- 右侧登录框 -->
+        <a-col :span="8" class="right-col">
+          <div class="right-content">
+            <div class="login-box-wrapper">
+              <Login />
+            </div>
+            <div v-show="showCertList" class="cert-list-wrapper">
+              <div class="cert-list-title">最新证书获得者</div>
+              <div class="cert-list">
+                <div class="cert-scroll">
+                  <div v-for="item in certList" :key="item.id" class="cert-item">
+                    <div class="cert-info">
+                      <span class="name">{{ item.name }}</span>
+                      <span class="id-card">{{ formatIdCard(item.idCard) }}</span>
+                      <span class="cert-name">{{ item.certName }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a-col>
+      </a-row>
+    </div>
+
+    <div class="register">
+      <Register />
+    </div>
+    <div class="forgotPassword">
+      <ForgotPassword />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import Background from './components/background/index.vue'
-import AccountLogin from './components/account/index.vue'
-import { socialAuth } from '@/apis/auth'
-import { useAppStore } from '@/stores'
-import { useDevice } from '@/hooks'
-import { onMounted } from 'vue'
+import { provide, ref } from 'vue'
+import Login from './components/login/index.vue'
+import Register from './components/register/index.vue'
+import ForgotPassword from './components/forgotPassword/index.vue'
+import Info from './components/info/index.vue'
+import Carousel from '@/components/Carousel/index.vue'
+import { forgotFormKey, loginFormKey } from '@/utils/inject-keys'
 
-defineOptions({ name: 'Login' })
-
-const { isDesktop } = useDevice()
-const appStore = useAppStore()
-const title = computed(() => appStore.getTitle())
-const logo = computed(() => appStore.getLogo())
-
-const isEmailLogin = ref(false)
-const activeTab = ref('1')
-// 切换登录模式
-const toggleLoginMode = () => {
-  isEmailLogin.value = !isEmailLogin.value
+// 格式化身份证号，只显示前6位和后4位
+const formatIdCard = (idCard: string) => {
+  return idCard.replace(/^(.{6})\d+(.{4})$/, '$1****$2')
 }
 
-// 第三方登录授权
-const onOauth = async (source: string) => {
-  const { data } = await socialAuth(source)
-  window.location.href = data.authorizeUrl
-}
+// 模拟证书获得者数据
+const certList = [
+  { id: 1, name: '张三', idCard: '110101199001011234', certName: '特种设备作业人员证' },
+  { id: 2, name: '李四', idCard: '110101199001021234', certName: '压力容器操作证' },
+  { id: 3, name: '王五', idCard: '110101199001031234', certName: '起重机操作证' },
+  { id: 4, name: '赵六', idCard: '110101199001041234', certName: '电梯安装维修证' },
+  { id: 5, name: '孙七', idCard: '110101199001051234', certName: '锅炉操作证' },
+  // ... 可以添加更多数据
+]
 
+// 注册账号窗口
+const loginWindow = ref(false)
+provide(loginFormKey, loginWindow)
+
+// 忘记密码窗口
+const forgotWindow = ref(false)
+provide(forgotFormKey, forgotWindow)
+
+// 控制证书列表显示
+const showCertList = ref(true)
+provide('showCertList', showCertList)
 </script>
 
 <style scoped lang="scss">
-@media screen and (max-width: 570px) {
-  .pc {
-    display: none !important;
-    background-color: white !important;
-  }
+.login-container {
+  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+  position: relative;
+}
 
-  .login {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: start;
-    align-items: center;
-    background-color: var(--color-bg-5);
-    color: #121314;
+.nav-header {
+  background: linear-gradient(90deg, rgb(var(--primary-6)), rgb(var(--success-6)));
+  padding: 16px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
 
-    &-logo {
-      width: 100%;
-      height: 104px;
-      font-weight: 700;
-      font-size: 20px;
-      line-height: 32px;
+  .nav-content {
+    width: 100%; // 修改为100%宽度
+    padding: 0 24px;
+    box-sizing: border-box;
+
+    .logo-section {
       display: flex;
-      padding: 0 20px;
       align-items: center;
-      justify-content: start;
-      background-image: url('/src/assets/images/login_h5.jpg');
-      background-size: 100% 100%;
-      box-sizing: border-box;
+      gap: 16px;
+      justify-content: flex-start; // 确保内容靠左对齐
 
-      img {
-        width: 34px;
-        height: 34px;
-        margin-right: 8px;
-      }
-    }
-
-    &-box {
-      width: 100%;
-      display: flex;
-      z-index: 999;
-    }
-  }
-
-  .login-right {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    padding: 30px 30px 0;
-    box-sizing: border-box;
-
-    &__title {
-      color: var(--color-text-1);
-      font-weight: 500;
-      font-size: 20px;
-      line-height: 32px;
-      margin-bottom: 20px;
-    }
-
-    &__form {
-      :deep(.arco-tabs-nav-tab) {
-        display: flex;
-        justify-content: start;
-        align-items: center;
+      .logo {
+        height: 36px;
+        width: auto;
       }
 
-      :deep(.arco-tabs-tab) {
-        color: var(--color-text-2);
-        margin: 0 20px 0 0;
-      }
-
-      :deep(.arco-tabs-tab-title) {
-        font-size: 16px;
-        font-weight: 500;
-        line-height: 22px;
-      }
-
-      :deep(.arco-tabs-content) {
-        margin-top: 10px;
-      }
-
-      :deep(.arco-tabs-tab-active),
-      :deep(.arco-tabs-tab-title:hover) {
-        color: rgb(var(--arcoblue-6));
-      }
-
-      :deep(.arco-tabs-nav::before) {
-        display: none;
-      }
-
-      :deep(.arco-tabs-tab-title:before) {
-        display: none;
-      }
-    }
-
-    &__oauth {
-      width: 100%;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      padding-bottom: 20px;
-
-      // margin-top: auto;
-      // margin-bottom: 20px;
-      :deep(.arco-divider-text) {
-        color: var(--color-text-4);
-        font-size: 12px;
-        font-weight: 400;
-        line-height: 20px;
-      }
-
-      .list {
-        align-items: center;
-        display: flex;
-        justify-content: center;
-        width: 100%;
-
-        .item {
-          margin-right: 15px;
-        }
-
-        .mode {
-          color: var(--color-text-2);
-          font-size: 12px;
-          font-weight: 400;
-          line-height: 20px;
-          padding: 6px 10px;
-          align-items: center;
-          border: 1px solid var(--color-border-3);
-          border-radius: 32px;
-          box-sizing: border-box;
-          display: flex;
-          height: 32px;
-          justify-content: center;
-          cursor: pointer;
-
-          .icon {
-            width: 21px;
-            height: 20px;
-          }
-        }
-
-        .mode svg {
-          font-size: 16px;
-          margin-right: 10px;
-        }
-
-        .mode:hover,
-        .mode svg:hover {
-          background: rgba(var(--primary-6), 0.05);
-          border: 1px solid rgb(var(--primary-3));
-          color: rgb(var(--arcoblue-6));
-        }
-      }
-    }
-  }
-
-  .theme-btn {
-    position: fixed;
-    top: 20px;
-    right: 30px;
-    z-index: 9999;
-  }
-
-  .footer {
-    align-items: center;
-    box-sizing: border-box;
-    position: absolute;
-    bottom: 10px;
-    z-index: 999;
-
-    .beian {
-      .text {
-        font-size: 12px;
-        font-weight: 400;
-        letter-spacing: 0.2px;
-        line-height: 20px;
-        text-align: center;
-      }
-
-      .below {
-        align-items: center;
-        display: flex;
+      h2 {
+        color: #fff;
+        margin: 0;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 1px;
       }
     }
   }
 }
 
-@media screen and (min-width: 571px) {
-  .h5 {
-    display: none !important;
-  }
+.main-content {
+  flex: 1;
+  display: flex;
+  padding: 24px 0;
 
-  .login {
-    height: 100%;
+  .content-wrapper {
+    flex: 1;
+    margin: 0;
+    padding: 0;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--color-bg-5);
-
-    &-logo {
-      position: fixed;
-      top: 20px;
-      left: 30px;
-      z-index: 9999;
-      color: var(--color-text-1);
-      font-weight: 500;
-      font-size: 20px;
-      line-height: 32px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      img {
-        width: 34px;
-        height: 34px;
-        margin-right: 8px;
-      }
-    }
-
-    &-box {
-      width: 86%;
-      max-width: 850px;
-      height: 490px;
-      display: flex;
-      z-index: 999;
-      box-shadow: 0 2px 4px 2px rgba(0, 0, 0, 0.08);
-    }
-  }
-
-  .login-left {
     width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(60deg, rgb(var(--primary-6)), rgb(var(--primary-3)));
+  }
+}
 
-    &__img {
-      width: 100%;
+.left-col, .right-col {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.left-col {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 68px); // 减去导航栏的高度
+  padding-left: 24px;
+}
+
+.left-content {
+  flex: 1;
+  display: flex;
+  height: 100%;
+}
+
+.carousel-info-section {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .carousel-wrapper {
+    flex: 1.2; // 将轮播图比例从2改为1.2，使其占据更少的空间
+    position: relative;
+    min-height: 0;
+    :deep(.el-carousel),
+    :deep(.el-carousel__container) {
+      height: 100% !important;
+    }
+  }
+
+  .info-wrapper {
+    flex: 1; // 保持公告区域比例不变
+    overflow-y: auto;
+    padding: 0 10px;
+    margin-top: 20px;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+.right-col {
+  padding-right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  height: calc(100vh - 68px); // 设置总高度
+}
+
+.right-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.login-box-wrapper {
+  height: 420px; // 固定登录框高度
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  margin: 0 24px;
+  transition: box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.cert-list-wrapper {
+  flex: 1;
+  height: 180px;
+  min-height: 180px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  margin: 30px 24px 30px 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+  position: relative;
+  z-index: 1;
+
+  .cert-list-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ff4d4f; // 使用红色
+    margin-bottom: 16px;
+    text-align: center; // 居中显示
+    position: relative;
+    padding-bottom: 10px; // 添加底部间距
+
+    &::after { // 添加底部装饰线
+      content: '';
       position: absolute;
       bottom: 0;
-      right: 0;
-      top: 50%;
       left: 50%;
-      transform: translateX(-50%) translateY(-50%);
-      transition: all 0.3s;
-      object-fit: cover;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 2px;
+      background: #ff4d4f;
     }
   }
 
-  .login-right {
-    width: 100%;
-    height: 100%;
-    background: var(--color-bg-1);
-    display: flex;
-    flex-direction: column;
-    padding: 30px 30px 0;
-    box-sizing: border-box;
+  .cert-list {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
 
-    &__title {
-      color: var(--color-text-1);
-      font-weight: 500;
-      font-size: 20px;
-      line-height: 32px;
-      margin-bottom: 20px;
+  .cert-scroll {
+    animation: scrollUp 20s linear infinite;
+    &:hover {
+      animation-play-state: paused;
+    }
+  }
+
+  .cert-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--color-border-2);
+
+    &:last-child {
+      border-bottom: none;
     }
 
-    &__form {
-      :deep(.arco-tabs-nav-tab) {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
+    .cert-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: var(--color-text-2);
 
-      :deep(.arco-tabs-tab) {
-        color: var(--color-text-2);
-      }
-
-      :deep(.arco-tabs-tab-title) {
-        font-size: 16px;
+      .name {
+        flex: 1;
         font-weight: 500;
-        line-height: 22px;
       }
 
-      :deep(.arco-tabs-content) {
-        margin-top: 10px;
+      .id-card {
+        flex: 2;
+        color: var(--color-text-3);
       }
 
-      :deep(.arco-tabs-tab-active),
-      :deep(.arco-tabs-tab-title:hover) {
-        color: rgb(var(--arcoblue-6));
-      }
-
-      :deep(.arco-tabs-nav::before) {
-        display: none;
-      }
-
-      :deep(.arco-tabs-tab-title:before) {
-        display: none;
-      }
-    }
-
-    &__oauth {
-      margin-top: auto;
-      margin-bottom: 20px;
-
-      :deep(.arco-divider-text) {
-        color: var(--color-text-4);
-        font-size: 12px;
-        font-weight: 400;
-        line-height: 20px;
-      }
-
-      .list {
-        align-items: center;
-        display: flex;
-        justify-content: center;
-        width: 100%;
-
-        .item {
-          margin-right: 15px;
-        }
-
-        .mode {
-          color: var(--color-text-2);
-          font-size: 12px;
-          font-weight: 400;
-          line-height: 20px;
-          padding: 6px 10px;
-          align-items: center;
-          border: 1px solid var(--color-border-3);
-          border-radius: 32px;
-          box-sizing: border-box;
-          display: flex;
-          height: 32px;
-          justify-content: center;
-          cursor: pointer;
-
-          .icon {
-            width: 21px;
-            height: 20px;
-          }
-        }
-
-        .mode svg {
-          font-size: 16px;
-          margin-right: 10px;
-        }
-
-        .mode:hover {
-          background: rgba(var(--primary-6), 0.05);
-          border: 1px solid rgb(var(--primary-3));
-          color: rgb(var(--arcoblue-6));
-        }
+      .cert-name {
+        flex: 2;
+        color: var(--color-text-1);
       }
     }
   }
+}
 
-  .theme-btn {
-    position: fixed;
-    top: 20px;
-    right: 30px;
-    z-index: 9999;
+@keyframes scrollUp {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  gap: 24px;
+  padding: 24px;
+  min-height: 0;
+  flex-direction: row-reverse;
+}
+
+// 响应式处理
+@media screen and (max-width: 1200px) {
+  .main-content {
+    padding: 16px 0;
   }
 
-  .footer {
-    align-items: center;
-    box-sizing: border-box;
-    position: absolute;
-    bottom: 10px;
-    z-index: 999;
-
-    .beian {
-      .text {
-        font-size: 12px;
-        font-weight: 400;
-        letter-spacing: 0.2px;
-        line-height: 20px;
-        text-align: center;
-      }
-
-      .below {
-        align-items: center;
-        display: flex;
-      }
-    }
+  .right-col {
+    padding-right: 16px;
   }
+
+  .login-box-wrapper {
+    margin: 0 16px;
+  }
+}
+
+// 添加遮罩层样式
+.login-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  display: none;
+}
+
+.login-container:has(.login-form[v-show="true"])::before {
+  display: block;
+}
+
+.mask {
+  height: 100%;
 }
 </style>

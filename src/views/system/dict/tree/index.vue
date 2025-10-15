@@ -4,7 +4,7 @@
       <a-input v-model="searchKey" placeholder="搜索名称/编码" allow-clear>
         <template #prefix><icon-search /></template>
       </a-input>
-      <a-button v-permission="['system:dict:create']" type="primary" @click="onAdd">
+      <a-button v-permission="['system:dict:add']" type="primary" @click="onAdd">
         <template #icon><icon-plus /></template>
       </a-button>
     </div>
@@ -54,13 +54,8 @@ import { type DictResp, deleteDict, listDict } from '@/apis/system/dict'
 import has from '@/utils/has'
 
 const emit = defineEmits<{
-  (e: 'node-click', dict: { dictId: string, dictName?: string, dictCode?: string }): void
+  (e: 'node-click', keys: Array<any>): void
 }>()
-
-interface TreeItem extends DictResp {
-  popupVisible: boolean
-}
-const dataList = ref<TreeItem[]>([])
 
 const selectedKeys = ref()
 // 选中节点
@@ -69,14 +64,13 @@ const select = (keys: Array<any>) => {
     return
   }
   selectedKeys.value = keys
-  const selectedDict = dataList.value.find((item) => item.id === keys[0])
-  emit('node-click', {
-    dictId: keys[0],
-    dictName: selectedDict?.name,
-    dictCode: selectedDict?.code,
-  })
+  emit('node-click', keys)
 }
 
+interface TreeItem extends DictResp {
+  popupVisible: boolean
+}
+const dataList = ref<TreeItem[]>([])
 const loading = ref(false)
 // 查询树列表
 const getTreeData = async () => {

@@ -29,3 +29,8 @@ export function getBehaviorCaptcha(req: any) {
 export function checkBehaviorCaptcha(req: any) {
   return http.post<T.CheckBehaviorCaptchaResp>(`${BASE_URL}/behavior`, req)
 }
+
+/** @desc 验证短信验证码 */
+export function getSmsCaptchaStatus(phone: string, captcha: string) {
+  return http.get<boolean>(`${BASE_URL}/getSmsCaptchaStatus`, { phone, captcha })
+}

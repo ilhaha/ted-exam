@@ -8,14 +8,13 @@ import {
   type PhoneLoginReq,
   type UserInfo,
   accountLogin as accountLoginApi,
-  invigilatorLogin as invigilatorLoginApi,
   emailLogin as emailLoginApi,
   getUserInfo as getUserInfoApi,
   logout as logoutApi,
   phoneLogin as phoneLoginApi,
-  socialLogin as socialLoginApi,
+  socialLogin as socialLoginApi, findIsAccount,
 } from '@/apis'
-import { clearToken, setToken,getToken} from '@/utils/auth'
+import { clearToken, getToken, setToken,setRoleFlag,clearRoleFlag } from '@/utils/auth'
 import { resetHasRouteFlag } from '@/router/guard'
 
 const storeSetup = () => {
@@ -33,30 +32,10 @@ const storeSetup = () => {
     deptName: '',
     roles: [],
     permissions: [],
-    planId: 0,
-    examNumber: '',
-    examTime: '',
-    planName: '',
-    classroomId: '',
-    classroomName: '',
-    role:'',
-    warningShortFilm:''
   })
-
-
-
   const nickname = computed(() => userInfo.nickname)
   const username = computed(() => userInfo.username)
   const avatar = computed(() => userInfo.avatar)
- 
-  const planId = computed(() => userInfo.planId)
-  const examNumber = computed(() => userInfo.examNumber)
-  const examTime = computed(() => userInfo.examTime)
-  const planName = computed(() => userInfo.planName)
-  const classroomId = computed(() => userInfo.classroomId)
-  const classroomName = computed(() => userInfo.classroomName)
-  const role = computed(() => userInfo.role)
-  const warningShortFilm = computed(() => userInfo.warningShortFilm)
 
   const token = ref(getToken() || '')
   const pwdExpiredShow = ref<boolean>(true)
@@ -73,31 +52,10 @@ const storeSetup = () => {
   // 登录
   const accountLogin = async (req: AccountLoginReq) => {
     const res = await accountLoginApi({ ...req, clientId: import.meta.env.VITE_CLIENT_ID, authType: AuthTypeConstants.ACCOUNT })
-    setToken(res.data.token)    
+    setToken(res.data.token)
+    setRoleFlag(res.data.role)
     token.value = res.data.token
-    userInfo.planId = res.data.examCandidateInfoVO.planId
-    userInfo.examNumber = res.data.examCandidateInfoVO.examNumber
-    userInfo.examTime = res.data.examCandidateInfoVO.examTime
-    userInfo.planName = res.data.examCandidateInfoVO.planName
-    userInfo.classroomId = res.data.examCandidateInfoVO.classroomId
-    userInfo.classroomName = res.data.examCandidateInfoVO.classroomName
-    userInfo.role = res.data.role
-    userInfo.warningShortFilm = res.data.examCandidateInfoVO.warningShortFilm
   }
-
-    // 开考密码登录
-    const invigilatortLogin = async (req: AccountLoginReq) => {
-    const res = await invigilatorLoginApi({ ...req, clientId: import.meta.env.VITE_CLIENT_ID, authType: AuthTypeConstants.ACCOUNT })
-    setToken(res.data.token)    
-    token.value = res.data.token
-    userInfo.planId = res.data.examCandidateInfoVO.planId
-    userInfo.examTime = res.data.examCandidateInfoVO.examTime
-    userInfo.planName = res.data.examCandidateInfoVO.planName
-    userInfo.classroomId = res.data.examCandidateInfoVO.classroomId
-    userInfo.classroomName = res.data.examCandidateInfoVO.classroomName
-    userInfo.role = res.data.role
-  }
-
 
   // 邮箱登录
   const emailLogin = async (req: EmailLoginReq) => {
@@ -110,6 +68,7 @@ const storeSetup = () => {
   const phoneLogin = async (req: PhoneLoginReq) => {
     const res = await phoneLoginApi({ ...req, clientId: import.meta.env.VITE_CLIENT_ID, authType: AuthTypeConstants.PHONE })
     setToken(res.data.token)
+    setRoleFlag(res.data.role)   
     token.value = res.data.token
   }
 
@@ -127,6 +86,7 @@ const storeSetup = () => {
     pwdExpiredShow.value = true
     resetToken()
     resetRouter()
+    clearRoleFlag()
   }
 
   // 退出登录
@@ -144,6 +104,7 @@ const storeSetup = () => {
   const getInfo = async () => {
     const res = await getUserInfoApi()
     Object.assign(userInfo, res.data)
+    userInfo.avatar = res.data.avatar
     if (res.data.roles && res.data.roles.length) {
       roles.value = res.data.roles
       permissions.value = res.data.permissions
@@ -155,18 +116,10 @@ const storeSetup = () => {
     nickname,
     username,
     avatar,
-    planId,
-    planName,
-    examNumber,
-    examTime,
-    classroomId,
-    classroomName,
-    warningShortFilm,
     token,
     roles,
     permissions,
     pwdExpiredShow,
-    role,
     accountLogin,
     emailLogin,
     phoneLogin,
@@ -175,11 +128,9 @@ const storeSetup = () => {
     logoutCallBack,
     getInfo,
     resetToken,
-    invigilatortLogin
   }
 }
 
 export const useUserStore = defineStore('user', storeSetup, {
-  persist: { paths: ['token', 'roles', 'permissions', 'pwdExpiredShow','userInfo',"planId","classroomId","role","warningShortFilm"], storage: localStorage },
+  persist: { paths: ['token', 'roles', 'permissions', 'pwdExpiredShow'], storage: localStorage },
 })
-

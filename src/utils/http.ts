@@ -36,10 +36,7 @@ const http: AxiosInstance = axios.create({
 
 const handleError = (msg: string) => {
   if (msg.length >= 15) {
-    return notificationErrorWrapper({
-      content: msg || '服务器端错误',
-      duration: 5 * 1000,
-    })
+    return notificationErrorWrapper(msg || '服务器端错误')
   }
   return messageErrorWrapper({
     content: msg || '服务器端错误',

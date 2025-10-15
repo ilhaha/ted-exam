@@ -1,9 +1,9 @@
 <template>
   <a-layout class="layout layout-default" :class="{ mobile: isMobile }">
-    <Asider></Asider>
+<!--    <Asider></Asider>-->
     <a-layout class="layout-default-right">
       <Header></Header>
-      <Tabs></Tabs>
+<!--      <Tabs></Tabs>-->
       <Main></Main>
       <GiFooter v-if="appStore.copyrightDisplay" />
     </a-layout>

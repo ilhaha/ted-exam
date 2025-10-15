@@ -5,11 +5,11 @@ export const defaultSettings: App.AppSettings = {
   tabMode: 'card-gutter',
   animate: false,
   animateMode: 'zoom-fade',
-  menuCollapse: false,
+  menuCollapse: true,
   menuAccordion: true,
   menuDark: false,
   copyrightDisplay: true,
-  layout: 'mix',
+  layout: 'left',
   enableColorWeaknessMode: false,
   enableMourningMode: false,
 }
