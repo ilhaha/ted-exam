@@ -9,7 +9,7 @@ const BASE_URL = '/examconnect/questionBank'
  * @param plan 
  * @returns 
  */
-export const generateExamQuestionBank = (planId:number) => {
+export const generateExamQuestionBank = (planId: number) => {
   return http.get(`${BASE_URL}/generate/exam/${planId}`)
 }
 
@@ -18,7 +18,16 @@ export const generateExamQuestionBank = (planId:number) => {
  * @param plan 
  * @returns 
  */
-export const getExamQuestionBank = (planId:number) => {
-  return http.get(`${BASE_URL}/exam/${planId}`)
-}
+// export const getExamQuestionBank = (planId:number) => {
+//   return http.get(`${BASE_URL}/exam/${planId}`)
+// }
 
+
+/**
+ * 获取考试计划的题目
+ * @param plan 
+ * @returns 
+ */
+export const getExamQuestionBank = (planId: number, userId: number) => {
+  return http.get(`${BASE_URL}/candidate/paper/${planId}/${userId}`)
+}

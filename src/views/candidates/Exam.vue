@@ -7,21 +7,13 @@
       <div class="exam-info">
         <span class="exam-title">特种设备作业人员考试</span>
         <div class="exam-stats">
-          <span class="exam-time"
-            >剩余时间：<span class="time-count">{{ timeLeft }}</span></span
-          >
+          <span class="exam-time">剩余时间：<span class="time-count">{{ timeLeft }}</span></span>
           <span class="stat-divider">|</span>
-          <span class="stat-item"
-            >已答：<span class="stat-value">{{ answeredQuestions.length }}</span
-            >题</span
-          >
+          <span class="stat-item">已答：<span class="stat-value">{{ answeredQuestions.length }}</span>题</span>
           <span class="stat-divider">|</span>
-          <span class="stat-item"
-            >未答：<span class="stat-value">{{
-              examPaper.topicNumber - answeredQuestions.length
-            }}</span
-            >题</span
-          >
+          <span class="stat-item">未答：<span class="stat-value">{{
+            examPaper.topicNumber - answeredQuestions.length
+              }}</span>题</span>
         </div>
       </div>
     </div>
@@ -57,11 +49,7 @@
 
       <div class="question-section">
         <div id="question-navigation">
-          <button
-            class="nav-btn prev"
-            :disabled="currentQuestion === 1"
-            @click="jumpToQuestion(currentQuestion - 1)"
-          >
+          <button class="nav-btn prev" :disabled="currentQuestion === 1" @click="jumpToQuestion(currentQuestion - 1)">
             <span class="btn-icon">←</span>
             <span class="btn-text">上一题</span>
           </button>
@@ -71,15 +59,12 @@
               examPaper.questions[currentQuestion - 1].questionType == 0
                 ? "单选题"
                 : examPaper.questions[currentQuestion - 1].questionType == 1
-                ? "判断题"
-                : "多选题"
+                  ? "判断题"
+                  : "多选题"
             }}</span>
           </div>
-          <button
-            class="nav-btn next"
-            :disabled="currentQuestion === examPaper.topicNumber"
-            @click="jumpToQuestion(currentQuestion + 1)"
-          >
+          <button class="nav-btn next" :disabled="currentQuestion === examPaper.topicNumber"
+            @click="jumpToQuestion(currentQuestion + 1)">
             <span class="btn-text">下一题</span>
             <span class="btn-icon">→</span>
           </button>
@@ -87,34 +72,20 @@
         <div id="question-text">
           {{ examPaper.questions[currentQuestion - 1].question }}
         </div>
-        <div
-          class="question-attachment"
-          v-if="examPaper.questions[currentQuestion - 1].attachment"
-        >
-          <a-image
-            :src="examPaper.questions[currentQuestion - 1].attachment"
-            class="attachment-image"
-            alt="题目附件"
-            height="100px"
-          >
+        <div class="question-attachment" v-if="examPaper.questions[currentQuestion - 1].attachment">
+          <a-image :src="examPaper.questions[currentQuestion - 1].attachment" class="attachment-image" alt="题目附件"
+            height="100px">
           </a-image>
         </div>
         <div id="options-container">
-          <div
-            class="option-item"
-            v-for="(option, index) in examPaper.questions[currentQuestion - 1]
-              .options"
-            :key="option.id"
-            @click="
+          <div class="option-item" v-for="(option, index) in examPaper.questions[currentQuestion - 1]
+            .options" :key="option.id" @click="
               selectOption(examPaper.questions[currentQuestion - 1], index)
-            "
-            :class="{
-              selected: isOptionSelected(
-                examPaper.questions[currentQuestion - 1].options[index].id
-              ),
-            }"
-            :style="{ cursor: 'pointer' }"
-          >
+              " :class="{
+                  selected: isOptionSelected(
+                    examPaper.questions[currentQuestion - 1].options[index].id
+                  ),
+                }" :style="{ cursor: 'pointer' }">
             <span class="option-label">{{ optionLabels[index] }}</span>
             <span class="option-text">{{ option.question }}</span>
           </div>
@@ -125,16 +96,10 @@
         <div class="sheet-header">答题卡</div>
         <div class="sheet-content">
           <div class="question-grid">
-            <div
-              v-for="i in examPaper.topicNumber"
-              :key="i"
-              class="question-cell"
-              :class="{
-                answered: answeredQuestions.includes(i),
-                current: currentQuestion === i,
-              }"
-              @click="jumpToQuestion(i)"
-            >
+            <div v-for="i in examPaper.topicNumber" :key="i" class="question-cell" :class="{
+              answered: answeredQuestions.includes(i),
+              current: currentQuestion === i,
+            }" @click="jumpToQuestion(i)">
               {{ i }}
             </div>
           </div>
@@ -212,7 +177,7 @@ const updateTime = () => {
 
 const initTopicList = async () => {
   isLoading.value = true;
-  const res = await getExamQuestionBank(userStore.planId);
+  const res = await getExamQuestionBank(userStore.planId, userStore.userInfo.id);
   examPaper.value = res.data;
   isLoading.value = false;
 };
@@ -330,7 +295,7 @@ const submitExam = () => {
       submitPaper();
       clearInterval(timer.value);
     },
-    onCancel: () => {},
+    onCancel: () => { },
   });
 };
 
@@ -375,13 +340,17 @@ const setHeight = (imageHeight) => {
 <style scoped>
 .loading-container {
   display: flex;
-  justify-content: center; /* 水平居中 */
-  align-items: center; /* 垂直居中 */
+  justify-content: center;
+  /* 水平居中 */
+  align-items: center;
+  /* 垂直居中 */
 }
+
 .option-item.selected {
   background-color: #e6f7ff;
   border: 1px solid #1890ff;
 }
+
 .exam-container {
   background-color: #f5f7fa;
   padding: 20px;
@@ -681,9 +650,11 @@ const setHeight = (imageHeight) => {
   padding: 15px;
   border-top: 1px solid #e8e8e8;
 }
+
 .question-attachment {
   margin-bottom: 10px;
 }
+
 .legend {
   display: flex;
   gap: 15px;

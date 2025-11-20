@@ -11,20 +11,14 @@
 
       <div class="exam-toolbar">
         <div class="search-controls">
-          <a-input
-            v-model="searchKeyword"
-            placeholder="请输入考生姓名进行搜索"
-            allow-clear
-            style="width: 250px"
-            @press-enter="handleSearch"
-            @clear="handleSearch"
-          >
+          <a-input v-model="searchKeyword" placeholder="请输入考生姓名进行搜索" allow-clear style="width: 250px"
+            @press-enter="handleSearch" @clear="handleSearch">
             <template #suffix>
               <icon-search @click="handleSearch" style="cursor: pointer; color: #409eff;" />
             </template>
           </a-input>
         </div>
-        <div class="toolbar-actions">          <a-tooltip content="刷新">
+        <div class="toolbar-actions"> <a-tooltip content="刷新">
             <a-button @click="handleRefresh">
               <template #icon><icon-refresh /></template>
             </a-button>
@@ -36,26 +30,13 @@
               结束
             </a-button>
           </a-tooltip>
-          </div>
+        </div>
       </div>
 
-      <a-table
-        :columns="columns"
-        :data="candidatesList"
-        row-key="id"
-        :pagination="false"
-      />
+      <a-table :columns="columns" :data="candidatesList" row-key="id" :pagination="false" />
 
-      <a-pagination
-        :current="pagination.current"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
-        show-total
-        show-jumper
-        show-page-size
-        @change="onPageChange"
-        @page-size-change="onPageSizeChange"
-      />
+      <a-pagination :current="pagination.current" :page-size="pagination.pageSize" :total="pagination.total" show-total
+        show-jumper show-page-size @change="onPageChange" @page-size-change="onPageSizeChange" />
     </a-card>
   </div>
 </template>
@@ -64,10 +45,10 @@
 import { ref, onMounted, h } from 'vue'
 import type { TableColumnData } from '@arco-design/web-vue'
 import { useUserStore } from '@/stores'
-import { getExamCandidates,type EnrollPageQuery } from '@/apis/enroll/index'
+import { getExamCandidates, type EnrollPageQuery } from '@/apis/enroll/index'
 import { generateExamQuestionBank } from '@/apis/questionBank/index'
 import { endExam } from '@/apis/exam/index'
-import { Message,Modal } from "@arco-design/web-vue";
+import { Message, Modal } from "@arco-design/web-vue";
 
 const router = useRouter()
 
@@ -88,21 +69,21 @@ const columns: TableColumnData[] = [
   { title: '姓名', dataIndex: 'nickname', align: 'center' },
   { title: '身份证号', dataIndex: 'username', align: 'center' },
   { title: '准考证号', dataIndex: 'examNumber', align: 'center' },
-{
-  title: '状态',
-  dataIndex: 'examStatus',
-  align: 'center',
-  render: ({ record }) => {    
-   const statusMap = {
-  0: { text: '未签到', class: 'status unchecked' },
-  1: { text: '已签到', class: 'status checked' },
-  2: { text: '已交卷', class: 'status submitted' },
-}
+  {
+    title: '状态',
+    dataIndex: 'examStatus',
+    align: 'center',
+    render: ({ record }) => {
+      const statusMap = {
+        0: { text: '未签到', class: 'status unchecked' },
+        1: { text: '已签到', class: 'status checked' },
+        2: { text: '已交卷', class: 'status submitted' },
+      }
 
-const status = statusMap[record.examStatus] || { text: '未知状态', class: 'status unknown' }
-    return h('span', { class: status.class }, status.text)
+      const status = statusMap[record.examStatus] || { text: '未知状态', class: 'status unknown' }
+      return h('span', { class: status.class }, status.text)
+    }
   }
-}
 ]
 
 // 拉取考生数据
@@ -124,7 +105,7 @@ const fetchCandidates = async () => {
   }
 }
 
-const handleFinish =  () => {
+const handleFinish = () => {
   const endTime = getExamEndTime()
   const now = dayjs()
 
@@ -147,19 +128,19 @@ const handleFinish =  () => {
       await endExam(userStore.planId);
       Message.success('考试已成功结束')
       await router.push({
-       path: '/invigilatorExamEnd'    
+        path: '/invigilatorExamEnd'
       })
     }
   })
 }
 
 const getExamEndTime = () => {
-  const timeRange = userStore.examTime 
+  const timeRange = userStore.examTime
   const parts = timeRange.split('——')
 
   if (parts.length === 2) {
-    const end = parts[1].trim() 
-    const endFormatted = end.replace(/年|月/g, '-').replace('日', '') 
+    const end = parts[1].trim()
+    const endFormatted = end.replace(/年|月/g, '-').replace('日', '')
     return dayjs(endFormatted)
   }
 
@@ -190,7 +171,9 @@ const onPageSizeChange = (size: number) => {
 }
 
 const initQuestionBank = async () => {
-  await generateExamQuestionBank(userStore.planId)
+  console.log(userStore.username);
+
+  // await generateExamQuestionBank(userStore.planId)
 }
 
 onMounted(() => {
@@ -220,6 +203,7 @@ onMounted(() => {
     }
   }
 }
+
 .invigilator-page {
   padding: 16px;
   overflow-y: auto;
@@ -239,7 +223,7 @@ onMounted(() => {
       font-weight: 600;
       color: #1f1f1f;
 
-      .exam-subject  {
+      .exam-subject {
         flex: 1 1 30%;
         min-width: 200px;
 
@@ -249,6 +233,7 @@ onMounted(() => {
           margin-left: 6px;
         }
       }
+
       .exam-time {
         flex: 1 1 32%;
         min-width: 200px;
