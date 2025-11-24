@@ -161,7 +161,6 @@ const getDataList = async () => {
       })
     })
   } catch (err) {
-    // console.log(err)
   } finally {
     loading.value = false
   }

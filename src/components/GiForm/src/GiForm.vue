@@ -238,7 +238,6 @@ props.columns.forEach((item) => {
   if (item.request && typeof item.request === 'function' && item?.init) {
     item.request(props.modelValue).then((res) => {
       dicData[item.field] = item.resultFormat ? item.resultFormat(res) : res.data
-      // console.log('dicData', dicData)
     })
   }
 })

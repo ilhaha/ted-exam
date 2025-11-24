@@ -1,6 +1,27 @@
 <template>
-  <div v-if="isLoading" class="loading-container">
-    <a-spin dot />
+  <!-- 考生拒绝录屏 -->
+  <div v-if="!screenAccepted" class="empty-wrapper">
+    <a-empty description="必须允许录屏并选择整个屏幕才能参加考试">
+      <template #image>
+        <icon-exclamation-circle-fill />
+      </template>
+    </a-empty>
+    <div class="extra-tip">
+      请点击下方按钮授权录屏，并在弹出的浏览器“分享屏幕”窗口中选择 <strong>整个屏幕</strong>，授权成功后即可开始考试。
+    </div>
+    <div style="margin-top: 12px; text-align: center;">
+      <button class="submit-btn" @click="startScreenCapture">
+        点击授权录屏
+      </button>
+    </div>
+  </div>
+
+  <div v-else-if="examPaper.questions.length === 0" class="empty-wrapper">
+    <a-empty description="试卷未生成">
+    </a-empty>
+    <div class="extra-tip">
+      如已通知监考员生成试卷，请稍后点击<a-link @click="initTopicList">刷新</a-link>重试
+    </div>
   </div>
   <div class="exam-container" v-else>
     <div id="exam-header">
@@ -19,34 +40,6 @@
     </div>
 
     <div class="exam-content">
-      <!-- <div class="user-info-section">
-        <div class="user-profile">
-          <img :src="userStore.avatar" alt="用户头像" class="user-avatar">
-          <div class="info-list">
-            <div class="info-item">
-              <span class="info-label">姓名：</span>
-              <span class="info-value">{{userStore.nickname}}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">身份证号：</span>
-              <span class="info-value">{{userStore.username}}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">准考证号：</span>
-              <span class="info-value">{{userStore.examNumber}}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">考试科目：</span>
-              <span class="info-value">{{userStore.planName}}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">结束时间：</span>
-              <span class="info-value">{{endTime}}</span>
-            </div>
-          </div>
-        </div>
-      </div> -->
-
       <div class="question-section">
         <div id="question-navigation">
           <button class="nav-btn prev" :disabled="currentQuestion === 1" @click="jumpToQuestion(currentQuestion - 1)">
@@ -82,10 +75,10 @@
             .options" :key="option.id" @click="
               selectOption(examPaper.questions[currentQuestion - 1], index)
               " :class="{
-                  selected: isOptionSelected(
-                    examPaper.questions[currentQuestion - 1].options[index].id
-                  ),
-                }" :style="{ cursor: 'pointer' }">
+                selected: isOptionSelected(
+                  examPaper.questions[currentQuestion - 1].options[index].id
+                ),
+              }" :style="{ cursor: 'pointer' }">
             <span class="option-label">{{ optionLabels[index] }}</span>
             <span class="option-text">{{ option.question }}</span>
           </div>
@@ -126,6 +119,7 @@
       </div>
     </div>
   </div>
+
 </template>
 
 <script setup lang="ts">
@@ -140,7 +134,11 @@ const router = useRouter();
 
 const userStore = useUserStore();
 
-const isLoading = ref(true);
+const mediaStream = ref<MediaStream | null>(null);
+const screenRecordingSupported = !!navigator.mediaDevices?.getDisplayMedia;
+
+const screenAccepted = ref(false);
+
 const examPaper = ref<any>({
   questions: [],
   topicNumber: 0,
@@ -176,10 +174,8 @@ const updateTime = () => {
 };
 
 const initTopicList = async () => {
-  isLoading.value = true;
   const res = await getExamQuestionBank(userStore.planId, userStore.userInfo.id);
   examPaper.value = res.data;
-  isLoading.value = false;
 };
 
 const jumpToQuestion = (index: number) => {
@@ -298,8 +294,39 @@ const submitExam = () => {
     onCancel: () => { },
   });
 };
+const startScreenCapture = async () => {
+  if (!screenRecordingSupported) {
+    Message.error("浏览器不支持录屏，请使用最新 Chrome/Edge 浏览器");
+    screenAccepted.value = false;
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: true,
+    });
+    const track = stream.getVideoTracks()[0];
+    const displaySurface = track.getSettings().displaySurface;
+
+    if (displaySurface !== "monitor") {
+      Message.error("请确保选择整个屏幕进行录制");
+      track.stop();
+      screenAccepted.value = false;
+      return;
+    }
+    mediaStream.value = stream;
+    screenAccepted.value = true; // 用户允许整个屏幕录制
+  } catch (err) {
+    Message.error("必须允许录屏才能参加考试");
+    screenAccepted.value = false;
+  }
+};
+
 
 onMounted(async () => {
+  // 获取录屏权限
+  await startScreenCapture();
+  if (!screenAccepted.value) return;
   await initTopicList();
   const [, endStr] = userStore.examTime.split(" —— ");
   const end = dayjs(endStr, "YYYY年MM月DD日 HH:mm");
@@ -312,6 +339,7 @@ onMounted(async () => {
 
 const setHeight = (imageHeight) => {
   const main = document.getElementById("options-container");
+  if (!main) return;
   const header = document.getElementById("exam-header");
   const navigation = document.getElementById("question-navigation");
   const questionText = document.getElementById("question-text");
@@ -338,7 +366,24 @@ const setHeight = (imageHeight) => {
 </script>
 
 <style scoped>
+.empty-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 20px;
+  text-align: center;
+}
+
+.extra-tip {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #999;
+}
+
 .loading-container {
+  height: 100vh;
   display: flex;
   justify-content: center;
   /* 水平居中 */

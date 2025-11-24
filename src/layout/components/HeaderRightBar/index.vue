@@ -101,7 +101,6 @@ const unreadMessageCount = ref(0)
 const initWebSocket = (token: string) => {
   socket = new WebSocket(`${import.meta.env.VITE_API_WS_URL}/websocket?token=${token}`)
   socket.onopen = () => {
-    // console.log('WebSocket connection opened')
   }
 
   socket.onmessage = (event) => {
@@ -109,11 +108,9 @@ const initWebSocket = (token: string) => {
   }
 
   socket.onerror = () => {
-    // console.error('WebSocket error:', error)
   }
 
   socket.onclose = () => {
-    // console.log('WebSocket connection closed')
   }
 }
 

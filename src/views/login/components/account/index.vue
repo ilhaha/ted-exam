@@ -37,6 +37,7 @@
   <a-input
     v-model="proctorPassword"
     type="password"
+    max-length="6"
     placeholder="请输入开考密码"
     @keydown.enter="handleConfirmPassword"
   />

@@ -24,7 +24,6 @@ export function useDict(...codes: string[]) {
           return data
         })
         .catch((error) => {
-          console.error(`Failed to load dict: ${code}`, error)
           return []
         })
         .finally(() => {

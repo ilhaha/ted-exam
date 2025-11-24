@@ -5,12 +5,12 @@ const BASE_URL = '/examconnect/questionBank'
 
 
 /**
- * 生成考试计划试卷
+ * 重新生成考生试卷
  * @param plan 
  * @returns 
  */
-export const generateExamQuestionBank = (planId: number) => {
-  return http.get(`${BASE_URL}/generate/exam/${planId}`)
+export const restGenerateExamQuestionBank = (data: any) => {
+  return http.post(`${BASE_URL}/rest/paper`, data)
 }
 
 /**

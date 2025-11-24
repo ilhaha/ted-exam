@@ -93,7 +93,6 @@ const onOpen = () => {
   const data = filePreview.fileInfo?.data
 
   if (!data) {
-    console.error('没有数据提供')
     return
   }
 
@@ -113,7 +112,6 @@ const onOpen = () => {
     url = URL.createObjectURL(blob)
     blobUrl.value = url
   } else {
-    console.error('不支持的类型')
     return
   }
 

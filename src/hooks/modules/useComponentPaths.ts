@@ -22,7 +22,6 @@ export const useComponentPaths = () => {
       })
     } catch (error) {
       Message.error('加载组件路径失败')
-      console.error('加载组件路径失败:', error)
     }
   }
 

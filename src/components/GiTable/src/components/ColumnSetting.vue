@@ -350,7 +350,6 @@ const loadSettingsFromStorage = () => {
     emitColumnsChange()
     return true
   } catch (e) {
-    console.error('Failed to load column settings from localStorage', e)
     return false
   }
 }
@@ -438,7 +437,6 @@ const handleReset = () => {
     // 显示成功消息
     Message.success('已重置表格列')
   } catch (e) {
-    console.error('Failed to reset column settings', e)
     Message.error('重置表格列失败')
   }
 }
@@ -454,7 +452,6 @@ const handleSave = () => {
     popoverVisible.value = false
     Message.success('保存成功')
   } catch (e) {
-    console.error('Failed to save column settings', e)
     Message.error('保存失败')
   }
 }

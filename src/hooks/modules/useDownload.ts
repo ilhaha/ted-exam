@@ -44,6 +44,5 @@ export const useDownload = async (api: () => Promise<any>, isNotify = false, tem
     document.body.removeChild(exportFile)
     window.URL.revokeObjectURL(blobUrl)
   } catch (error) {
-    // console.log(error)
   }
 }

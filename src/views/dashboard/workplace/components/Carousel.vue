@@ -67,7 +67,6 @@ const getDataList = async () => {
       dataList.value = images.value
     }
   } catch (err) {
-    // console.log(err)
   } finally {
     loading.value = false
   }

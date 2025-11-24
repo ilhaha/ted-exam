@@ -174,7 +174,6 @@ const save = async () => {
     onBack()
     return true
   } catch (error) {
-    console.error(error)
     return false
   }
 }
