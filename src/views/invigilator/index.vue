@@ -136,18 +136,20 @@ const fetchCandidates = async () => {
 }
 
 const handleFinish = () => {
-  const endTime = getExamEndTime()
-  const now = dayjs()
+  // const endTime = getExamEndTime()
+  // const now = dayjs()
 
-  if (!endTime) {
-    Message.error('考试结束时间格式错误，无法判断')
-    return
-  }
+  // if (!endTime) {
+  //   Message.error('考试结束时间格式错误，无法判断')
+  //   return
+  // }
 
-  if (now.isBefore(endTime)) {
-    Message.warning('未到达考试结束时间，暂时无法结束考试')
-    return
-  }
+  // if (now.isBefore(endTime)) {
+  //   Message.warning('未到达考试结束时间，暂时无法结束考试')
+  //   return
+  // }
+
+  
 
   Modal.confirm({
     title: '确认结束考试',

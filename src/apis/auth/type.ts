@@ -19,6 +19,7 @@ export interface UserInfo {
   planName: string,
   classroomId:string,
   classroomName:string,
+  examDuration:number,
   role:string,
   warningShortFilm:string
 }
@@ -28,6 +29,7 @@ export interface ExamCandidateInfoVO {
   planId: number
   examNumber: string
   examTime: string
+  examDuration:number,
   planName: string
   classroomId:string
   classroomName:string

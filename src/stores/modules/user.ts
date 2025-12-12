@@ -15,7 +15,7 @@ import {
   phoneLogin as phoneLoginApi,
   socialLogin as socialLoginApi,
 } from '@/apis'
-import { clearToken, setToken,getToken} from '@/utils/auth'
+import { clearToken, setToken, getToken } from '@/utils/auth'
 import { resetHasRouteFlag } from '@/router/guard'
 
 const storeSetup = () => {
@@ -36,11 +36,12 @@ const storeSetup = () => {
     planId: 0,
     examNumber: '',
     examTime: '',
+    examDuration: 0,
     planName: '',
     classroomId: '',
     classroomName: '',
-    role:'',
-    warningShortFilm:''
+    role: '',
+    warningShortFilm: ''
   })
 
 
@@ -48,10 +49,11 @@ const storeSetup = () => {
   const nickname = computed(() => userInfo.nickname)
   const username = computed(() => userInfo.username)
   const avatar = computed(() => userInfo.avatar)
- 
+
   const planId = computed(() => userInfo.planId)
   const examNumber = computed(() => userInfo.examNumber)
   const examTime = computed(() => userInfo.examTime)
+  const examDuration = computed(() => userInfo.examDuration)
   const planName = computed(() => userInfo.planName)
   const classroomId = computed(() => userInfo.classroomId)
   const classroomName = computed(() => userInfo.classroomName)
@@ -73,11 +75,12 @@ const storeSetup = () => {
   // 登录
   const accountLogin = async (req: AccountLoginReq) => {
     const res = await accountLoginApi({ ...req, clientId: import.meta.env.VITE_CLIENT_ID, authType: AuthTypeConstants.ACCOUNT })
-    setToken(res.data.token)    
+    setToken(res.data.token)
     token.value = res.data.token
     userInfo.planId = res.data.examCandidateInfoVO.planId
     userInfo.examNumber = res.data.examCandidateInfoVO.examNumber
     userInfo.examTime = res.data.examCandidateInfoVO.examTime
+    userInfo.examDuration = res.data.examCandidateInfoVO.examDuration
     userInfo.planName = res.data.examCandidateInfoVO.planName
     userInfo.classroomId = res.data.examCandidateInfoVO.classroomId
     userInfo.classroomName = res.data.examCandidateInfoVO.classroomName
@@ -85,13 +88,14 @@ const storeSetup = () => {
     userInfo.warningShortFilm = res.data.examCandidateInfoVO.warningShortFilm
   }
 
-    // 开考密码登录
-    const invigilatortLogin = async (req: AccountLoginReq) => {
+  // 开考密码登录
+  const invigilatortLogin = async (req: AccountLoginReq) => {
     const res = await invigilatorLoginApi({ ...req, clientId: import.meta.env.VITE_CLIENT_ID, authType: AuthTypeConstants.ACCOUNT })
-    setToken(res.data.token)    
+    setToken(res.data.token)
     token.value = res.data.token
     userInfo.planId = res.data.examCandidateInfoVO.planId
     userInfo.examTime = res.data.examCandidateInfoVO.examTime
+    userInfo.examDuration = res.data.examCandidateInfoVO.examDuration
     userInfo.planName = res.data.examCandidateInfoVO.planName
     userInfo.classroomId = res.data.examCandidateInfoVO.classroomId
     userInfo.classroomName = res.data.examCandidateInfoVO.classroomName
@@ -159,6 +163,7 @@ const storeSetup = () => {
     planName,
     examNumber,
     examTime,
+    examDuration,
     classroomId,
     classroomName,
     warningShortFilm,
@@ -180,6 +185,6 @@ const storeSetup = () => {
 }
 
 export const useUserStore = defineStore('user', storeSetup, {
-  persist: { paths: ['token', 'roles', 'permissions', 'pwdExpiredShow','userInfo',"planId","classroomId","role","warningShortFilm"], storage: localStorage },
+  persist: { paths: ['token', 'roles', 'permissions', 'pwdExpiredShow', 'userInfo', "planId", "classroomId", "role", "warningShortFilm"], storage: localStorage },
 })
 

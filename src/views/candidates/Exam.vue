@@ -34,7 +34,7 @@
           <span class="stat-divider">|</span>
           <span class="stat-item">未答：<span class="stat-value">{{
             examPaper.topicNumber - answeredQuestions.length
-              }}</span>题</span>
+          }}</span>题</span>
         </div>
       </div>
     </div>
@@ -137,7 +137,7 @@ const userStore = useUserStore();
 const mediaStream = ref<MediaStream | null>(null);
 const screenRecordingSupported = !!navigator.mediaDevices?.getDisplayMedia;
 
-const screenAccepted = ref(false);
+const screenAccepted = ref(true);
 
 const examPaper = ref<any>({
   questions: [],
@@ -146,16 +146,21 @@ const examPaper = ref<any>({
 const currentQuestion = ref(1);
 const answeredQuestions = ref<number[]>([]);
 const timeLeft = ref("");
-const endTime = ref("");
 const timer = ref<number>();
+
+let startTime = dayjs();
 
 const optionLabels = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
 const updateTime = () => {
-  const [, endStr] = userStore.examTime.split(" —— ");
-  const end = dayjs(endStr, "YYYY年MM月DD日 HH:mm");
+  // 考试总时长（分钟）
+  const duration = userStore.examDuration;
+
+  // 计算结束时间
+  const end = startTime.add(duration, "minute");
   const now = dayjs();
   const diff = end.diff(now, "second");
+
   if (diff <= 0) {
     timeLeft.value = "00:00";
     clearInterval(timer.value);
@@ -164,18 +169,24 @@ const updateTime = () => {
       submitPaper();
     }, 3000);
     return;
-  } else {
-    const minutes = Math.floor(diff / 60)
-      .toString()
-      .padStart(2, "0");
-    const seconds = (diff % 60).toString().padStart(2, "0");
-    timeLeft.value = `${minutes}:${seconds}`;
   }
+
+  const minutes = Math.floor(diff / 60)
+    .toString()
+    .padStart(2, "0");
+  const seconds = (diff % 60).toString().padStart(2, "0");
+
+  timeLeft.value = `${minutes}:${seconds}`;
 };
+
 
 const initTopicList = async () => {
   const res = await getExamQuestionBank(userStore.planId, userStore.userInfo.id);
   examPaper.value = res.data;
+  if (examPaper.value) {
+    // 修改考生考生状态
+    return;
+  }
 };
 
 const jumpToQuestion = (index: number) => {
@@ -325,13 +336,12 @@ const startScreenCapture = async () => {
 
 onMounted(async () => {
   // 获取录屏权限
-  await startScreenCapture();
+  // await startScreenCapture();
   if (!screenAccepted.value) return;
   await initTopicList();
-  const [, endStr] = userStore.examTime.split(" —— ");
-  const end = dayjs(endStr, "YYYY年MM月DD日 HH:mm");
-  endTime.value = end.format("HH:mm");
-
+  // 1. 用户进入页面的当前时间作为考试开始时间
+  startTime = dayjs();
+  // 3. 开始倒计时
   updateTime();
   timer.value = setInterval(updateTime, 1000);
   setHeight(0);

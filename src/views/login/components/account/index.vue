@@ -127,10 +127,10 @@ const handleLogin = async () => {
     return
   }
 
-  if(!/^\d{14}$/.test(form.examNumber)){
-    Message.error("准考证号为是14位数字")
-    return
-  }  
+  // if(!/^\d{14}$/.test(form.examNumber)){
+  //   Message.error("准考证号为是14位数字")
+  //   return
+  // }  
 
   try {
     await userStore.accountLogin({

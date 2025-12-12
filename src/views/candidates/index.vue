@@ -2,8 +2,8 @@
   <div class="user-info-container" v-show="!showVideo">
     <h2 class="main-title">确认信息并开始考试</h2>
     <div class="current-time">
-  <span class="time-text">{{ now }}</span>
-</div>
+      <span class="time-text">{{ now }}</span>
+    </div>
     <a-row :gutter="{ md: 8, lg: 24, xl: 32 }">
       <a-col :span="24">
         <div class="info-card">
@@ -17,27 +17,27 @@
                 <div class="info-list">
                   <div class="info-item">
                     <span class="label">姓名：</span>
-                    <span class="value">{{userStore.nickname}} </span>
+                    <span class="value">{{ userStore.nickname }} </span>
                   </div>
                   <div class="info-item">
                     <span class="label">身份证号：</span>
-                    <span class="value">{{userStore.username}}</span>
+                    <span class="value">{{ userStore.username }}</span>
                   </div>
                   <div class="info-item">
                     <span class="label">准考证号：</span>
-                    <span class="value">{{userStore.examNumber}}</span>
+                    <span class="value">{{ userStore.examNumber }}</span>
                   </div>
                   <div class="info-item">
                     <span class="label">考试科目：</span>
-                    <span class="value">{{userStore.planName}}</span>
+                    <span class="value">{{ userStore.planName }}</span>
                   </div>
-                    <div class="info-item">
+                  <div class="info-item">
                     <span class="label">考试考场：</span>
-                    <span class="value">{{userStore.classroomName}}</span>
+                    <span class="value">{{ userStore.classroomName }}</span>
                   </div>
                   <div class="info-item">
                     <span class="label">考试时间：</span>
-                    <span class="value">{{userStore.examTime}}</span>
+                    <span class="value">{{ userStore.examTime }}</span>
                   </div>
                 </div>
               </div>
@@ -48,7 +48,7 @@
                 <div class="announcement-item">
                   <div class="announcement-title">考试须知</div>
                   <div class="announcement-text">
-                    1. 考试时间为{{examDuration}}，请合理安排答题时间<br>
+                    1. 考试时间为{{ userStore.examDuration }}分钟，请合理安排答题时间<br>
                     2. 考试开始前15分钟到达考场<br>
                     3. 考试期间请保持安静，遵守考场纪律
                   </div>
@@ -65,27 +65,24 @@
             </div>
           </div>
           <div class="button-container">
-            <a-button class="confirm-button" @click="handleVideoButtonClick" v-if="!videoEnded">观看警示短片</a-button>
-            <a-button v-if="videoEnded" class="confirm-button"  @click="startExam">进入考试</a-button>
+            <a-button class="confirm-button" @click="handleVideoButtonClick"
+              v-if="!videoEnded && userStore.warningShortFilm">观看警示短片</a-button>
+            <a-button v-if="videoEnded || !userStore.warningShortFilm" class="confirm-button" @click="startExam">进入考试</a-button>
           </div>
         </div>
       </a-col>
     </a-row>
   </div>
   <div v-show="showVideo" style="width:100%;">
-    <video
-      ref="plyrVideo"
-      class="plyr-video"
-      playsinline
-    >
+    <video ref="plyrVideo" class="plyr-video" playsinline>
       <source :src="userStore.warningShortFilm" type="video/mp4" />
     </video>
-   
+
   </div>
 </template>
 <script setup lang="ts">
-import {  useUserStore } from '@/stores'
-import { Message,Modal } from "@arco-design/web-vue";
+import { useUserStore } from '@/stores'
+import { Message, Modal } from "@arco-design/web-vue";
 import dayjs from 'dayjs'
 
 import Plyr from 'plyr'
@@ -100,22 +97,22 @@ let player: Plyr
 
 const router = useRouter()
 
-const startExam = async () => {   
-  const [startStr] = userStore.examTime.split(' —— ')
-  const start = dayjs(startStr, 'YYYY年MM月DD日 HH:mm')
-  const nowTime = dayjs()
+const startExam = async () => {
+  // const [startStr] = userStore.examTime.split(' —— ')
+  // const start = dayjs(startStr, 'YYYY年MM月DD日 HH:mm')
+  // const nowTime = dayjs()
 
-  // 小于考试开始时间
-  if (nowTime.isBefore(start)) {
-    Message.warning('考试尚未开始，请耐心等待')
-    return
-  }
+  // // 小于考试开始时间
+  // if (nowTime.isBefore(start)) {
+  //   Message.warning('考试尚未开始，请耐心等待')
+  //   return
+  // }
 
-  // 超过考试开始15分钟
-  if (nowTime.isAfter(start.add(15, 'minute'))) {
-    Message.error('已超过考试开始15分钟，无法进入考试')
-    return
-  }
+  // // 超过考试开始15分钟
+  // if (nowTime.isAfter(start.add(15, 'minute'))) {
+  //   Message.error('已超过考试开始15分钟，无法进入考试')
+  //   return
+  // }
 
   Modal.warning({
     title: '确认开始考试',
@@ -125,13 +122,13 @@ const startExam = async () => {
     hideCancel: false, // 显示取消按钮
     onOk: () => {
       router.push({
-        path: '/startExam'    
-        })
+        path: '/startExam'
+      })
     },
     onCancel: () => {
     }
   })
-    
+
 }
 
 watch(showVideo, (visible) => {
@@ -170,20 +167,20 @@ const handleVideoButtonClick = () => {
   showVideo.value = true;
 }
 
-const examDuration = computed(() => {  
-  const [startStr, endStr] = userStore.examTime.split(' —— ')
-  const start = dayjs(startStr, 'YYYY年MM月DD日 HH:mm')
-  const end = dayjs(endStr, 'YYYY年MM月DD日 HH:mm')
-  const duration = end.diff(start, 'minute')  
-  return `${duration} 分钟`
-})
+// const examDuration = computed(() => {
+//   const [startStr, endStr] = userStore.examTime.split(' —— ')
+//   const start = dayjs(startStr, 'YYYY年MM月DD日 HH:mm')
+//   const end = dayjs(endStr, 'YYYY年MM月DD日 HH:mm')
+//   const duration = end.diff(start, 'minute')
+//   return `${duration} 分钟`
+// })
 const now = ref(dayjs().format('YYYY年MM月DD日 HH:mm'))
 const timer = ref<number>()
 
-onMounted(() => {  
+onMounted(() => {
   setInterval(() => {
-  now.value = dayjs().format('YYYY年MM月DD日 HH:mm')
-}, 36000)
+    now.value = dayjs().format('YYYY年MM月DD日 HH:mm')
+  }, 36000)
 })
 
 onUnmounted(() => {
@@ -251,7 +248,8 @@ onUnmounted(() => {
   gap: 32px;
 }
 
-.left-section, .right-section {
+.left-section,
+.right-section {
   flex: 1;
 }
 
