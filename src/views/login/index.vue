@@ -16,9 +16,12 @@
         <div class="login-right">
           <EmailLogin v-if="isEmailLogin" />
           <a-tabs v-else v-model:activeKey="activeTab" class="login-right__form">
-            <a-tab-pane key="1" title="身份证登录">
+            <a-tab-pane key="1" title="考生登录">
               <component :is="AccountLogin" v-if="activeTab === '1'" />
             </a-tab-pane>
+            <!-- <a-tab-pane key="2" title="监考员登录">
+              <component :is="InvigilatorAccountLogin" v-if="activeTab === '2'" />
+            </a-tab-pane> -->
           </a-tabs>
         </div>
       </a-col>
@@ -34,6 +37,7 @@
 import { computed, ref } from 'vue'
 import Background from './components/background/index.vue'
 import AccountLogin from './components/account/index.vue'
+// import InvigilatorAccountLogin from './components/invigilator/index.vue'
 import { socialAuth } from '@/apis/auth'
 import { useAppStore } from '@/stores'
 import { useDevice } from '@/hooks'

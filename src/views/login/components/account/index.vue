@@ -1,53 +1,34 @@
 <template>
-  <a-form
-    ref="formRef"
-    :model="form"
-    :rules="rules"
-    :label-col-style="{ display: 'none' }"
-    :wrapper-col-style="{ flex: 1 }"
-    size="large"
-    @submit="handleLogin"
-  >
+  <a-form ref="formRef" :model="form" :rules="rules" :label-col-style="{ display: 'none' }"
+    :wrapper-col-style="{ flex: 1 }" size="large" @submit="handleLogin">
     <a-form-item field="username" hide-label>
       <a-input v-model="form.username" placeholder="请输入身份证号" allow-clear />
     </a-form-item>
     <a-form-item field="examNumber" hide-label>
       <a-input v-model="form.examNumber" placeholder="请输入准考证号" allow-clear />
     </a-form-item>
-    <a-form-item>
+    <!-- <a-form-item>
       <a-row justify="end" align="center" class="w-full">
-        <!-- 监考员链接，点击弹窗 -->
         <a-link @click.prevent="showProctorModal = true">我是监考员</a-link>
       </a-row>
-    </a-form-item>
+    </a-form-item> -->
     <a-form-item>
       <a-space direction="vertical" fill class="w-full">
         <a-button class="btn" type="primary" :loading="loading" html-type="submit" size="large" long>进入考试</a-button>
       </a-space>
     </a-form-item>
   </a-form>
-
-<a-modal
-  v-model:visible="showProctorModal"
-  title="请输入开考密码"
-  :mask-closable="false"
-  :closable="false"  
-  :footer="null"     
->
-  <a-input
-    v-model="proctorPassword"
-    type="password"
-    max-length="6"
-    placeholder="请输入开考密码"
-    @keydown.enter="handleConfirmPassword"
-  />
-  <div style="margin-top: 16px; text-align: right;">
-  <a-space>
-    <a-button @click="handleCancel">取消</a-button>
-    <a-button @click="handleConfirmPassword" type="primary">确认</a-button>
-  </a-space>
-</div>
-</a-modal>
+<!-- 
+  <a-modal v-model:visible="showProctorModal" title="请输入开考密码" :mask-closable="false" :closable="false" :footer="null">
+    <a-input v-model="proctorPassword" type="password" max-length="6" placeholder="请输入开考密码"
+      @keydown.enter="handleConfirmPassword" />
+    <div style="margin-top: 16px; text-align: right;">
+      <a-space>
+        <a-button @click="handleCancel">取消</a-button>
+        <a-button @click="handleConfirmPassword" type="primary">确认</a-button>
+      </a-space>
+    </div>
+  </a-modal> -->
 </template>
 
 <script setup lang="ts">
@@ -122,7 +103,7 @@ const handleLogin = async () => {
 
   if ((await formRef.value?.validate())) return
 
-  if(!/^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/.test(form.username)) {
+  if (!/^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/.test(form.username)) {
     Message.error("身份证格式不正确")
     return
   }
@@ -154,6 +135,7 @@ const handleLogin = async () => {
 .btn {
   height: 40px;
 }
+
 .arco-input-wrapper,
 :deep(.arco-select-view-single) {
   height: 40px;
