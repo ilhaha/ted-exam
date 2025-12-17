@@ -31,6 +31,7 @@ const storeSetup = () => {
     pwdExpired: false,
     registrationDate: '',
     deptName: '',
+    enableProctorWarning: true,
     roles: [],
     permissions: [],
     planId: 0,
@@ -59,6 +60,7 @@ const storeSetup = () => {
   const classroomName = computed(() => userInfo.classroomName)
   const role = computed(() => userInfo.role)
   const warningShortFilm = computed(() => userInfo.warningShortFilm)
+  const enableProctorWarning = computed(() => userInfo.enableProctorWarning)
 
   const token = ref(getToken() || '')
   const pwdExpiredShow = ref<boolean>(true)
@@ -86,6 +88,7 @@ const storeSetup = () => {
     userInfo.classroomName = res.data.examCandidateInfoVO.classroomName
     userInfo.role = res.data.role
     userInfo.warningShortFilm = res.data.examCandidateInfoVO.warningShortFilm
+    userInfo.enableProctorWarning = res.data.examCandidateInfoVO.enableProctorWarning
   }
 
   // 开考密码登录
@@ -167,6 +170,7 @@ const storeSetup = () => {
     classroomId,
     classroomName,
     warningShortFilm,
+    enableProctorWarning,
     token,
     roles,
     permissions,
@@ -185,6 +189,6 @@ const storeSetup = () => {
 }
 
 export const useUserStore = defineStore('user', storeSetup, {
-  persist: { paths: ['token', 'roles', 'permissions', 'pwdExpiredShow', 'userInfo', "planId", "classroomId", "role", "warningShortFilm"], storage: localStorage },
+  persist: { paths: ['token', 'roles', 'permissions', 'pwdExpiredShow', 'userInfo', "planId", "classroomId", "role", "warningShortFilm", "enableProctorWarning"], storage: localStorage },
 })
 

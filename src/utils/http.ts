@@ -30,7 +30,7 @@ const StatusCodeMessage: ICodeMessage = {
 }
 
 const http: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_PREFIX ?? import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 30 * 1000,
 })
 
@@ -140,8 +140,8 @@ const createRequest = (method: string) => {
       [method === 'get' ? 'params' : 'data']: params,
       ...(method === 'get'
         ? {
-            paramsSerializer: (obj) => qs.stringify(obj),
-          }
+          paramsSerializer: (obj) => qs.stringify(obj),
+        }
         : {}),
       ...config,
     })

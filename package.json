@@ -1,17 +1,48 @@
 {
-  "name": "continew-admin-ui",
+  "name": "SEExam",
   "type": "module",
-  "version": "3.7.0-SNAPSHOT",
+  "version": "1.0.0",
   "private": "true",
+  "main": "electron/main.js",
   "scripts": {
     "bootstrap": "pnpm install --registry=https://registry.npmmirror.com",
-    "dev": "vite --host",
+    "dev": "vite --host  --port 5175",
     "build": "vue-tsc --noEmit && vite build",
     "build:test": "vue-tsc --noEmit && vite build --mode test",
     "preview": "vite preview --port 5050",
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "electron": "wait-on tcp:5175 && cross-env NODE_ENV=development electron .",
+    "electron:dev": "wait-on tcp:5175 && cross-env NODE_ENV=development electron .",
+    "electron:build": "vite build && electron-builder"
+  },
+  "build": {
+    "appId": "com.yxt.exam",
+    "productName": "特种设备作业人员考试系统",
+    "copyright": "Copyright © 2023",
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "public/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "特种设备作业人员考试系统"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets",
+      "output": "dist"
+    }
   },
   "dependencies": {
     "@amap/amap-jsapi-loader": "^1.0.1",
@@ -73,6 +104,8 @@
     "@vitejs/plugin-vue-jsx": "^3.1.0",
     "@vue/tsconfig": "^0.1.3",
     "boxen": "^7.1.1",
+    "electron": "^39.2.7",
+    "electron-builder": "^26.0.12",
     "eslint": "^9.0.0",
     "less": "^4.1.3",
     "less-loader": "^11.0.0",

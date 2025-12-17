@@ -1,11 +1,11 @@
 <template>
 <div>
-  <a-button size="mini" class="gi_hover_btn" @click="toggle" v-if="!isFullscreen">
+  <!-- <a-button size="mini" class="gi_hover_btn" @click="toggle" v-if="!isFullscreen">
     <template #icon>
       <icon-fullscreen v-if="!isFullscreen" :size="18" />
       <icon-fullscreen-exit v-else :size="18" />
     </template>
-  </a-button>
+  </a-button> -->
   <a-button size="mini" class="gi_hover_btn" @click="handleToggleTheme">
     <template #icon>
       <icon-moon-fill v-if="appStore.theme === 'light'" :size="18" />

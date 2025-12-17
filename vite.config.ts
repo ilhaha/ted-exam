@@ -7,7 +7,9 @@ export default defineConfig(({ command, mode }) => {
 
   return {
     // 开发或生产环境服务的公共基础路径
-    base: env.VITE_BASE,
+    base: './',
+    publicPath: './', // 防止electron打包后 页面空白
+    transpileDependencies: true, // 防止electron打包后 页面空白
     // 路径别名
     resolve: {
       alias: {

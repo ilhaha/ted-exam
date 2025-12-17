@@ -1,6 +1,6 @@
 # ContiNew Admin UI
 
-<a href="https://github.com/continew-org/continew-admin-ui" title="Release" target="_blank">
+<a href="https://github.com/continew-org/SEExam" title="Release" target="_blank">
 <img src="https://img.shields.io/badge/SNAPSHOT-v3.7.0-%23ff3f59.svg" alt="Release" />
 </a>
 <a href="https://vuejs.org/" title="Vue" target="_blank">
@@ -16,7 +16,7 @@
 <img src="https://img.shields.io/badge/Vite-5.1.5-%236CB52D.svg?logo=Vite&logoColor=FFF" alt="Vite" />
 </a>
 <br />
-<a href="https://github.com/continew-org/continew-admin-ui/blob/dev/LICENSE" title="License" target="_blank">
+<a href="https://github.com/continew-org/SEExam/blob/dev/LICENSE" title="License" target="_blank">
 <img src="https://img.shields.io/badge/License-Apache--2.0-blue.svg" alt="License" />
 </a>
 <a href="https://github.com/continew-org/continew-admin" title="GitHub Stars" target="_blank">
@@ -49,9 +49,9 @@ ContiNew Admin（Continue New Admin）持续迭代优化的前后端分离中后
 
 |         | 前端                                                         | 后端                                                         |
 | :------ | :----------------------------------------------------------- | :----------------------------------------------------------- |
-| Gitee   | [continew/continew-admin-ui](https://gitee.com/continew/continew-admin-ui) | [continew/continew-admin](https://gitee.com/continew/continew-admin) |
-| GitCode | [continew/continew-admin-ui](https://gitcode.com/continew/continew-admin-ui) | [continew/continew-admin](https://gitcode.com/continew/continew-admin) |
-| GitHub  | [continew-org/continew-admin-ui](https://github.com/continew-org/continew-admin-ui) | [continew-org/continew-admin](https://github.com/continew-org/continew-admin) |
+| Gitee   | [continew/SEExam](https://gitee.com/continew/SEExam) | [continew/continew-admin](https://gitee.com/continew/continew-admin) |
+| GitCode | [continew/SEExam](https://gitcode.com/continew/SEExam) | [continew/continew-admin](https://gitcode.com/continew/continew-admin) |
+| GitHub  | [continew-org/SEExam](https://github.com/continew-org/SEExam) | [continew-org/continew-admin](https://github.com/continew-org/continew-admin) |
 
 ## 项目起源
 
@@ -213,10 +213,10 @@ public class DeptController extends BaseController<DeptService, DeptResp, DeptDe
 
 ```
 # 1.克隆本项目
-git clone https://github.com/charles7c/continew-admin-ui.git
-git clone https://gitee.com/continew/continew-admin-ui.git
+git clone https://github.com/charles7c/SEExam.git
+git clone https://gitee.com/continew/SEExam.git
 
-# 2.在 IDE（Visual Studio Code/WebStorm）中打开前端项目 continew-admin-ui
+# 2.在 IDE（Visual Studio Code/WebStorm）中打开前端项目 SEExam
 
 # 3.安装 pnpm
 npm install -g pnpm
@@ -232,7 +232,7 @@ pnpm dev
 ## 项目结构
 
 ```
-continew-admin-ui
+SEExam
 ├─ config              # Vite 插件配置
 ├─ public              # 公共静态资源（favicon.ico、logo.svg）
 ├─ src
@@ -333,7 +333,7 @@ ContiNew Admin 的分支目前分为下个大版本的开发分支和上个大�
 2. 然后，将 fork 过来的项目（即您的项目）克隆到本地
 3. 切换到当前仍在维护的分支（请务必充分了解分支使用说明，可进群联系维护者确认）
 4. 开始修改代码，修改完成后，将代码 commit 并 push 到您的远程仓库
-5. 在 Gitee 或 GitHub 上新建 pull request（pr），选择好源和目标，按模板要求填写说明信息后提交即可（多多参考 [已批准合并的 pr 记录](https://github.com/Charles7c/continew-admin-ui/pulls?q=is%3Apr+is%3Amerged)，会大大增加批准合并率）
+5. 在 Gitee 或 GitHub 上新建 pull request（pr），选择好源和目标，按模板要求填写说明信息后提交即可（多多参考 [已批准合并的 pr 记录](https://github.com/Charles7c/SEExam/pulls?q=is%3Apr+is%3Amerged)，会大大增加批准合并率）
 6. 最后，耐心等待维护者合并您的请求即可
 
 请记住，如果您有任何疑问或需要帮助，我们将随时提供支持。
@@ -370,5 +370,5 @@ ContiNew Admin 的分支目前分为下个大版本的开发分支和上个大�
 
 ## License
 
-- 遵循 <a href="https://github.com/Charles7c/continew-admin-ui/blob/dev/LICENSE" target="_blank">Apache-2.0</a> 开源许可协议
+- 遵循 <a href="https://github.com/Charles7c/SEExam/blob/dev/LICENSE" target="_blank">Apache-2.0</a> 开源许可协议
 - Copyright © 2022-present <a href="https://blog.charles7c.top" target="_blank">Charles7c</a>

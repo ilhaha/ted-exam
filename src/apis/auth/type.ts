@@ -17,11 +17,12 @@ export interface UserInfo {
   examNumber: string,
   examTime: string,
   planName: string,
-  classroomId:string,
-  classroomName:string,
-  examDuration:number,
-  role:string,
-  warningShortFilm:string
+  classroomId: string,
+  classroomName: string,
+  examDuration: number,
+  role: string,
+  warningShortFilm: string,
+  enableProctorWarning: true,
 }
 
 
@@ -29,12 +30,13 @@ export interface ExamCandidateInfoVO {
   planId: number
   examNumber: string
   examTime: string
-  examDuration:number,
+  examDuration: number,
   planName: string
-  classroomId:string
-  classroomName:string
-  role:string
-  warningShortFilm:string
+  classroomId: string
+  classroomName: string
+  role: string
+  warningShortFilm: string,
+  enableProctorWarning: boolean,
 }
 
 /** 路由类型 */
@@ -83,10 +85,10 @@ export interface AuthReq {
 export interface AccountLoginReq extends AuthReq {
   username: string
   password: string
-  examNumber:string
-  planName:string,
-  classroomId:string,
-  classroomName:string
+  examNumber: string
+  planName: string,
+  classroomId: string,
+  classroomName: string
 }
 
 /** 手机号登录请求参数 */
@@ -104,9 +106,9 @@ export interface EmailLoginReq extends AuthReq {
 /** 登录响应类型 */
 export interface LoginResp {
   token: string,
-  examNumber:string,
-  examTime:string,
-  examCandidateInfoVO:ExamCandidateInfoVO,
+  examNumber: string,
+  examTime: string,
+  examCandidateInfoVO: ExamCandidateInfoVO,
   role: string
 }
 

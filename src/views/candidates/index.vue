@@ -49,16 +49,18 @@
                   <div class="announcement-title">考试须知</div>
                   <div class="announcement-text">
                     1. 考试时间为{{ userStore.examDuration }}分钟，请合理安排答题时间<br>
-                    2. 考试开始前15分钟到达考场<br>
-                    3. 考试期间请保持安静，遵守考场纪律
+                    2. 考试期间请保持安静，遵守考场纪律
                   </div>
                 </div>
                 <div class="announcement-item">
                   <div class="announcement-title">注意事项</div>
                   <div class="announcement-text">
                     1. 考试系统出现异常请及时联系监考老师<br>
-                    2. 答题过程中请勿刷新页面或关闭浏览器<br>
-                    3. 考试结束前请确保所有题目都已作答
+                    2. 【重要须知】考试作答时，严禁刷新页面、切换屏幕，违规将影响考试成绩<br>
+                    3. 作答过程中请勿随意切换输入法或调整系统设置，防止页面卡顿<br>
+                    4. 考试过程中若遇网络中断，请立即联系监考老师，切勿自行重启设备<br>
+                    5. 禁止使用任何辅助软件、工具书或通讯设备，一经发现按作弊处理<br>
+                    6. 交卷后请确认系统提示“提交成功”，再离开考场
                   </div>
                 </div>
               </div>
@@ -67,11 +69,18 @@
           <div class="button-container">
             <a-button class="confirm-button" @click="handleVideoButtonClick"
               v-if="!videoEnded && userStore.warningShortFilm">观看警示短片</a-button>
-            <a-button v-if="videoEnded || !userStore.warningShortFilm" class="confirm-button" @click="startExam">进入考试</a-button>
+            <a-button v-if="videoEnded || !userStore.warningShortFilm" class="confirm-button"
+              @click="startExam">进入考试</a-button>
           </div>
         </div>
       </a-col>
     </a-row>
+  </div>
+  <!-- 右上角退出按钮 -->
+  <div class="top-right-exit">
+    <a-button status="danger" @click="handleExit">
+      退出
+    </a-button>
   </div>
   <div v-show="showVideo" style="width:100%;">
     <video ref="plyrVideo" class="plyr-video" playsinline>
@@ -131,6 +140,25 @@ const startExam = async () => {
 
 }
 
+const handleExit = () => {
+  Modal.warning({
+    title: '提示',
+    content: '确定要退出考试系统吗？',
+    hideCancel: false,
+    closable: true,
+    onBeforeOk: async () => {
+      try {
+        await userStore.logout()
+        await router.replace('/login')
+        return true
+      } catch (error) {
+        return false
+      }
+    },
+  })
+}
+
+
 watch(showVideo, (visible) => {
   if (visible && plyrVideo.value) {
     player = new Plyr(plyrVideo.value, {
@@ -178,16 +206,26 @@ const now = ref(dayjs().format('YYYY年MM月DD日 HH:mm'))
 const timer = ref<number>()
 
 onMounted(() => {
+  window.electronAPI.send('set-user-info', {
+    idCard: userStore.username
+  });
+
   setInterval(() => {
     now.value = dayjs().format('YYYY年MM月DD日 HH:mm')
   }, 36000)
 })
-
 onUnmounted(() => {
   if (timer) clearInterval(timer.value)
 })
 </script>
 <style scoped>
+.top-right-exit {
+  position: fixed;
+  top: 16px;
+  right: 24px;
+  z-index: 999;
+}
+
 .plyr-video {
   width: 100%;
   height: 100vh;

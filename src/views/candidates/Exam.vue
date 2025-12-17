@@ -1,22 +1,5 @@
 <template>
-  <!-- 考生拒绝录屏 -->
-  <div v-if="!screenAccepted" class="empty-wrapper">
-    <a-empty description="必须允许录屏并选择整个屏幕才能参加考试">
-      <template #image>
-        <icon-exclamation-circle-fill />
-      </template>
-    </a-empty>
-    <div class="extra-tip">
-      请点击下方按钮授权录屏，并在弹出的浏览器“分享屏幕”窗口中选择 <strong>整个屏幕</strong>，授权成功后即可开始考试。
-    </div>
-    <div style="margin-top: 12px; text-align: center;">
-      <button class="submit-btn" @click="startScreenCapture">
-        点击授权录屏
-      </button>
-    </div>
-  </div>
-
-  <div v-else-if="examPaper.questions.length === 0" class="empty-wrapper">
+  <div v-if="examPaper.questions.length === 0" class="empty-wrapper">
     <a-empty description="试卷未生成">
     </a-empty>
     <div class="extra-tip">
@@ -34,7 +17,7 @@
           <span class="stat-divider">|</span>
           <span class="stat-item">未答：<span class="stat-value">{{
             examPaper.topicNumber - answeredQuestions.length
-          }}</span>题</span>
+              }}</span>题</span>
         </div>
       </div>
     </div>
@@ -133,11 +116,6 @@ import dayjs from "dayjs";
 const router = useRouter();
 
 const userStore = useUserStore();
-
-const mediaStream = ref<MediaStream | null>(null);
-const screenRecordingSupported = !!navigator.mediaDevices?.getDisplayMedia;
-
-const screenAccepted = ref(true);
 
 const examPaper = ref<any>({
   questions: [],
@@ -305,39 +283,37 @@ const submitExam = () => {
     onCancel: () => { },
   });
 };
-const startScreenCapture = async () => {
-  if (!screenRecordingSupported) {
-    Message.error("浏览器不支持录屏，请使用最新 Chrome/Edge 浏览器");
-    screenAccepted.value = false;
-    return;
-  }
-  try {
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: true,
-    });
-    const track = stream.getVideoTracks()[0];
-    const displaySurface = track.getSettings().displaySurface;
 
-    if (displaySurface !== "monitor") {
-      Message.error("请确保选择整个屏幕进行录制");
-      track.stop();
-      screenAccepted.value = false;
-      return;
-    }
-    mediaStream.value = stream;
-    screenAccepted.value = true; // 用户允许整个屏幕录制
-  } catch (err) {
-    Message.error("必须允许录屏才能参加考试");
-    screenAccepted.value = false;
+// 系统监考
+const startInvigilating = () => {
+  if (userStore.enableProctorWarning) {
+    // 开启切屏截图
+    window.electronAPI.send('enable-screen-monitor');
+  }
+
+  // 避免重复绑定
+  window.electronAPI.on('screen-blur-count', (_e, data) => {
+    handleScreenBlur(data);
+  });
+};
+
+const handleScreenBlur = (data: { count: number; max: number }) => {
+  const { count, max } = data;
+
+  if (count < max) {
+    // 仅提示诚信考试，不透露次数相关信息
+    alert("诚信考试提醒：检测到切屏操作，请遵守考试纪律，诚信作答。");
+  } else {
+    alert("考试违规提醒：切屏次数已超出限制，系统将自动提交答卷并记录本次违规行为。");
+    // submitPaper()
   }
 };
 
 
+
 onMounted(async () => {
-  // 获取录屏权限
-  // await startScreenCapture();
-  if (!screenAccepted.value) return;
+  startInvigilating();
+
   await initTopicList();
   // 1. 用户进入页面的当前时间作为考试开始时间
   startTime = dayjs();
@@ -345,6 +321,13 @@ onMounted(async () => {
   updateTime();
   timer.value = setInterval(updateTime, 1000);
   setHeight(0);
+});
+
+onUnmounted(() => {
+  if (userStore.enableProctorWarning) {
+    // 关闭切屏截图
+    window.electronAPI.send('disable-screen-monitor');
+  }
 });
 
 const setHeight = (imageHeight) => {
