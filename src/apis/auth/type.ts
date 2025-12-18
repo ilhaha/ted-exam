@@ -22,7 +22,7 @@ export interface UserInfo {
   examDuration: number,
   role: string,
   warningShortFilm: string,
-  enableProctorWarning: true,
+  enableProctorWarning: boolean,
 }
 
 

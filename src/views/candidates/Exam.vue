@@ -17,7 +17,7 @@
           <span class="stat-divider">|</span>
           <span class="stat-item">未答：<span class="stat-value">{{
             examPaper.topicNumber - answeredQuestions.length
-              }}</span>题</span>
+          }}</span>题</span>
         </div>
       </div>
     </div>
@@ -144,7 +144,7 @@ const updateTime = () => {
     clearInterval(timer.value);
     Message.warning("考试时间已到，正在自动提交试卷...");
     setTimeout(() => {
-      submitPaper();
+      submitPaper(0);
     }, 3000);
     return;
   }
@@ -210,7 +210,7 @@ const selectOption = (question: any, index: number) => {
 
 const hasSubmitted = ref(false);
 
-const submitPaper = async () => {
+const submitPaper = async (violationType: number) => {
   if (hasSubmitted.value) return;
   hasSubmitted.value = true;
   let totalScore = 0;
@@ -245,6 +245,11 @@ const submitPaper = async () => {
       }
     }
   }
+  let screenshotDir: string | null = null;
+  if (violationType !== 0) {
+    // 等待 Electron 返回违规截图目录
+    screenshotDir = await window.electronAPI.getViolationScreenshotDir();
+  }
   await addRecord({
     planId: userStore.planId,
     candidateId: userStore.userInfo.id,
@@ -252,12 +257,18 @@ const submitPaper = async () => {
     examScores: totalScore,
     reviewStatus: 0,
     examPaper: JSON.stringify(examPaper.value),
+    violationType: violationType,
+    screenshotDir: screenshotDir
   });
 
   Message.success("已提交");
 
   await router.push({
     path: "/examEnd",
+    query: {
+      violationType: violationType,
+      score: totalScore
+    }
   });
 };
 
@@ -277,7 +288,7 @@ const submitExam = () => {
     maskClosable: false,
     hideCancel: false, // 显示取消按钮
     onOk: () => {
-      submitPaper();
+      submitPaper(0);
       clearInterval(timer.value);
     },
     onCancel: () => { },
@@ -289,29 +300,32 @@ const startInvigilating = () => {
   if (userStore.enableProctorWarning) {
     // 开启切屏截图
     window.electronAPI.send('enable-screen-monitor');
-  }
 
-  // 避免重复绑定
-  window.electronAPI.on('screen-blur-count', (_e, data) => {
-    handleScreenBlur(data);
-  });
+    // 先移除已有监听，避免重复绑定
+    window.electronAPI.removeAllListeners?.('screen-blur-count');
+
+    // 绑定事件
+    window.electronAPI.on('screen-blur-count', (_e, data) => {
+      handleScreenBlur(data);
+    });
+  }
 };
 
 const handleScreenBlur = (data: { count: number; max: number }) => {
   const { count, max } = data;
-
   if (count < max) {
     // 仅提示诚信考试，不透露次数相关信息
     alert("诚信考试提醒：检测到切屏操作，请遵守考试纪律，诚信作答。");
   } else {
     alert("考试违规提醒：切屏次数已超出限制，系统将自动提交答卷并记录本次违规行为。");
-    // submitPaper()
+    clearInterval(timer.value);
+    submitPaper(1)
   }
 };
 
-
-
 onMounted(async () => {
+  console.log(11);
+  
   startInvigilating();
 
   await initTopicList();

@@ -74,7 +74,7 @@ const storeSetup = () => {
     resetHasRouteFlag()
   }
 
-  // 登录
+  // 考生登录
   const accountLogin = async (req: AccountLoginReq) => {
     const res = await accountLoginApi({ ...req, clientId: import.meta.env.VITE_CLIENT_ID, authType: AuthTypeConstants.ACCOUNT })
     setToken(res.data.token)
