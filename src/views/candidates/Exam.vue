@@ -17,7 +17,7 @@
           <span class="stat-divider">|</span>
           <span class="stat-item">未答：<span class="stat-value">{{
             examPaper.topicNumber - answeredQuestions.length
-          }}</span>题</span>
+              }}</span>题</span>
         </div>
       </div>
     </div>
@@ -112,6 +112,8 @@ import { useRoute } from "vue-router";
 import { useUserStore } from "@/stores";
 import { getExamQuestionBank } from "@/apis/questionBank/index";
 import { addRecord } from "@/apis/examRecords/index";
+import { upload } from '@/apis/file/index'
+
 import dayjs from "dayjs";
 const router = useRouter();
 
@@ -125,6 +127,7 @@ const currentQuestion = ref(1);
 const answeredQuestions = ref<number[]>([]);
 const timeLeft = ref("");
 const timer = ref<number>();
+const violationScreenshots = ref<string[]>([]);
 
 let startTime = dayjs();
 
@@ -245,11 +248,6 @@ const submitPaper = async (violationType: number) => {
       }
     }
   }
-  let screenshotDir: string | null = null;
-  if (violationType !== 0) {
-    // 等待 Electron 返回违规截图目录
-    screenshotDir = await window.electronAPI.getViolationScreenshotDir();
-  }
   await addRecord({
     planId: userStore.planId,
     candidateId: userStore.userInfo.id,
@@ -258,11 +256,10 @@ const submitPaper = async (violationType: number) => {
     reviewStatus: 0,
     examPaper: JSON.stringify(examPaper.value),
     violationType: violationType,
-    screenshotDir: screenshotDir
+    violationScreenshots: violationType == 0 ? [] : violationScreenshots.value
   });
 
-  Message.success("已提交");
-
+  userStore.resetProctorCount()
   await router.push({
     path: "/examEnd",
     query: {
@@ -295,39 +292,48 @@ const submitExam = () => {
   });
 };
 
+// 处理主进程发送的截图数据
+const onScreenCaptured = async (_event, screenshots) => {
+  for (const item of screenshots) {
+    const formData = new FormData();
+    const file = base64ToFile(item.base64, item.name);
+    formData.append('file', file, item.name);
+    formData.append('type', 'pic');
+
+    const res = await upload(formData);
+    violationScreenshots.value.push(res.data.url);
+  }
+
+  // 增加违规次数
+  userStore.incrementProctorCount();
+  const count = userStore.userInfo.proctorCount;
+
+  if (count < 3) {
+    Message.warning(`诚信考试提醒：检测到切屏操作，请遵守考试纪律，诚信作答。`);
+    return;
+  }
+  // 超限处理
+  Message.error("考试违规提醒：切屏次数已超出限制，系统将自动提交答卷并记录本次违规行为。")
+  clearInterval(timer.value);
+  submitPaper(1);
+};
+
+
 // 系统监考
 const startInvigilating = () => {
   if (userStore.enableProctorWarning) {
+    window.electronAPI.removeAllListeners?.('screen-captured');
+
     // 开启切屏截图
     window.electronAPI.send('enable-screen-monitor');
 
-    // 先移除已有监听，避免重复绑定
-    window.electronAPI.removeAllListeners?.('screen-blur-count');
+    window.electronAPI.on('screen-captured', onScreenCaptured);
 
-    // 绑定事件
-    window.electronAPI.on('screen-blur-count', (_e, data) => {
-      handleScreenBlur(data);
-    });
-  }
-};
-
-const handleScreenBlur = (data: { count: number; max: number }) => {
-  const { count, max } = data;
-  if (count < max) {
-    // 仅提示诚信考试，不透露次数相关信息
-    alert("诚信考试提醒：检测到切屏操作，请遵守考试纪律，诚信作答。");
-  } else {
-    alert("考试违规提醒：切屏次数已超出限制，系统将自动提交答卷并记录本次违规行为。");
-    clearInterval(timer.value);
-    submitPaper(1)
   }
 };
 
 onMounted(async () => {
-  console.log(11);
-  
   startInvigilating();
-
   await initTopicList();
   // 1. 用户进入页面的当前时间作为考试开始时间
   startTime = dayjs();
@@ -341,8 +347,23 @@ onUnmounted(() => {
   if (userStore.enableProctorWarning) {
     // 关闭切屏截图
     window.electronAPI.send('disable-screen-monitor');
+    window.electronAPI.removeAllListeners?.('screen-captured');
+    userStore.resetProctorCount();
+
   }
 });
+
+// 将图片base64转成文件上传
+const base64ToFile = (base64: string, filename: string): File => {
+  const byteString = atob(base64);
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  return new File([ab], filename, { type: 'image/png' });
+};
+
 
 const setHeight = (imageHeight) => {
   const main = document.getElementById("options-container");

@@ -33,18 +33,18 @@ export const systemRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/candidates/ExamEnd.vue'),
     meta: { hidden: true },
   },
-  {
-    path: '/invigilator',
-    name: 'Invigilator',
-    component: () => import('@/views/invigilator/index.vue'),
-    meta: { hidden: true },
-  },
-  {
-    path: '/invigilatorExamEnd',
-    name: 'InvigilatorExamEnd',
-    component: () => import('@/views/invigilator/ExamEnd.vue'),
-    meta: { hidden: true },
-  },
+  // {
+  //   path: '/invigilator',
+  //   name: 'Invigilator',
+  //   component: () => import('@/views/invigilator/index.vue'),
+  //   meta: { hidden: true },
+  // },
+  // {
+  //   path: '/invigilatorExamEnd',
+  //   name: 'InvigilatorExamEnd',
+  //   component: () => import('@/views/invigilator/ExamEnd.vue'),
+  //   meta: { hidden: true },
+  // },
   {
     path: '/social/callback',
     component: () => import('@/views/login/social/index.vue'),

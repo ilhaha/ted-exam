@@ -23,6 +23,7 @@ export interface UserInfo {
   role: string,
   warningShortFilm: string,
   enableProctorWarning: boolean,
+  proctorCount: number
 }
 
 

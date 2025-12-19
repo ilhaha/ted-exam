@@ -9,47 +9,18 @@ const __dirname = path.dirname(__filename);
 
 let mainWindow;
 
-// 每个考生独立状态
-const examContext = {
-    candidateIdCard: null,
-    blurCount: 0,
-    monitorEnabled: false
-};
+// 是否开启了违规操作提醒
+let monitorEnabled = false
 
-const MAX_BLUR_COUNT = 3;
-
-// 获取违规截图文件夹路径
-ipcMain.on('get-violation-screenshot-dir', (event) => {
-    if (!examContext.candidateIdCard) {
-        event.reply('violation-screenshot-dir-result', null);
-        return;
-    }
-
-    const screenshotDir = path.join(
-        app.getPath('userData'),
-        examContext.candidateIdCard
-    );
-
-    // 文件夹不存在也直接返回路径（由 Vue 或后端决定是否使用）
-    event.reply('violation-screenshot-dir-result', screenshotDir);
-});
-
-
-// 接收身份证
-ipcMain.on('set-user-info', (event, data) => {
-    examContext.candidateIdCard = data.idCard;
-    examContext.blurCount = 0;
-});
 
 // 开启截图监控
 ipcMain.on('enable-screen-monitor', () => {
-    examContext.monitorEnabled = true;
-    examContext.blurCount = 0;
+    monitorEnabled = true;
 });
 
 // 关闭截图监控
 ipcMain.on('disable-screen-monitor', () => {
-    examContext.monitorEnabled = false;
+    monitorEnabled = false;
 });
 
 function createWindow() {
@@ -60,8 +31,8 @@ function createWindow() {
         frame: false,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
-            nodeIntegration: false,
             contextIsolation: true,
+            nodeIntegration: false,
         },
     });
 
@@ -76,19 +47,9 @@ function createWindow() {
 
     // 切屏 / 窗口失去焦点事件
     mainWindow.on('blur', async () => {
-        if (!examContext.monitorEnabled) return;
-        if (!examContext.candidateIdCard) return;
-
-        examContext.blurCount++;
-
+        if (!monitorEnabled) return;
         // 截屏
         await captureScreen();
-
-        // 通知前端切屏次数
-        mainWindow.webContents.send('screen-blur-count', {
-            count: examContext.blurCount,
-            max: MAX_BLUR_COUNT
-        });
     });
 }
 
@@ -99,32 +60,33 @@ async function captureScreen() {
             types: ['screen'],
             thumbnailSize: { width: 1920, height: 1080 }
         });
-        const userFolder = path.join(
-            app.getPath('userData'),
-            examContext.candidateIdCard || 'unknown'
-        );
 
-        if (!fs.existsSync(userFolder)) {
-            fs.mkdirSync(userFolder, { recursive: true });
-        }
+        const screenshots = [];
 
         for (let i = 0; i < sources.length; i++) {
             const screen = sources[i];
+
+            // 转成 NativeImage
             const image = nativeImage.createFromDataURL(
                 screen.thumbnail.toDataURL()
             );
 
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const filePath = path.join(
-                userFolder,
-                `screenshot-${i}-${timestamp}.png`
-            );
+            // Buffer → base64
+            const base64 = image.toPNG().toString('base64');
 
-            fs.writeFileSync(filePath, image.toPNG());
+            screenshots.push({
+                name: `screenshot-${Date.now()}-${i}.png`,
+                base64
+            });
         }
+        // 直接发给渲染进程
+        mainWindow?.webContents.send('screen-captured', screenshots);
+
     } catch (err) {
     }
 }
+
+
 
 app.whenReady().then(() => {
     createWindow();

@@ -79,6 +79,7 @@
   <!-- 右上角退出按钮 -->
   <div class="top-right-exit">
     <a-button status="danger" @click="handleExit">
+      <template #icon><icon-export /></template>
       退出
     </a-button>
   </div>
@@ -206,10 +207,6 @@ const now = ref(dayjs().format('YYYY年MM月DD日 HH:mm'))
 const timer = ref<number>()
 
 onMounted(() => {
-  window.electronAPI.send('set-user-info', {
-    idCard: userStore.username
-  });
-
   setInterval(() => {
     now.value = dayjs().format('YYYY年MM月DD日 HH:mm')
   }, 36000)

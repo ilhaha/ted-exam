@@ -42,7 +42,8 @@ const storeSetup = () => {
     classroomId: '',
     classroomName: '',
     role: '',
-    warningShortFilm: ''
+    warningShortFilm: '',
+    proctorCount: 0
   })
 
 
@@ -61,6 +62,7 @@ const storeSetup = () => {
   const role = computed(() => userInfo.role)
   const warningShortFilm = computed(() => userInfo.warningShortFilm)
   const enableProctorWarning = computed(() => userInfo.enableProctorWarning)
+  const proctorCount = computed(() => userInfo.proctorCount)
 
   const token = ref(getToken() || '')
   const pwdExpiredShow = ref<boolean>(true)
@@ -72,6 +74,16 @@ const storeSetup = () => {
     token.value = ''
     clearToken()
     resetHasRouteFlag()
+  }
+
+  // 增加考生违规次数
+  const incrementProctorCount = () => {
+    userInfo.proctorCount += 1
+  }
+
+  // 重置考生违规次数
+  const resetProctorCount = () => {
+    userInfo.proctorCount = 0
   }
 
   // 考生登录
@@ -89,6 +101,7 @@ const storeSetup = () => {
     userInfo.role = res.data.role
     userInfo.warningShortFilm = res.data.examCandidateInfoVO.warningShortFilm
     userInfo.enableProctorWarning = res.data.examCandidateInfoVO.enableProctorWarning
+    userInfo.proctorCount = 0
   }
 
   // 开考密码登录
@@ -171,6 +184,7 @@ const storeSetup = () => {
     classroomName,
     warningShortFilm,
     enableProctorWarning,
+    proctorCount,
     token,
     roles,
     permissions,
@@ -184,11 +198,13 @@ const storeSetup = () => {
     logoutCallBack,
     getInfo,
     resetToken,
-    invigilatortLogin
+    invigilatortLogin,
+    incrementProctorCount,
+    resetProctorCount
   }
 }
 
 export const useUserStore = defineStore('user', storeSetup, {
-  persist: { paths: ['token', 'roles', 'permissions', 'pwdExpiredShow', 'userInfo', "planId", "classroomId", "role", "warningShortFilm", "enableProctorWarning"], storage: localStorage },
+  persist: { paths: ['token', 'roles', 'permissions', 'pwdExpiredShow', 'userInfo', "planId", "classroomId", "role", "warningShortFilm", "enableProctorWarning", "proctorCount"], storage: localStorage },
 })
 
