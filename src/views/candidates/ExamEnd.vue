@@ -12,9 +12,16 @@
           <li>💬 如对考试内容有异议，可通过正式渠道申诉</li>
         </ul>
 
-        <div class="score-info normal-score">
-          <p>💯 本次考试得分：<strong>{{ score }}</strong></p>
+        <div class="score-info" :class="score >= 60 ? 'pass-score' : 'fail-score'">
+          <p>
+            💯 本次考试得分：
+            <strong>{{ score }}</strong>
+            <span class="result-text">
+              （{{ score >= 60 ? "及格" : "不及格" }}）
+            </span>
+          </p>
         </div>
+
       </div>
     </div>
 
@@ -33,10 +40,16 @@
           <li>💬 如有异议，可在规定时间内提出申诉</li>
         </ul>
 
-        <div class="score-info pending">
-          <p>💯 当前得分：<strong>{{ score }}</strong></p>
-          <p class="remark">⚠️ 最终成绩以审核结果为准</p>
+        <div class="score-info" :class="score >= 60 ? 'pass-score' : 'fail-score'">
+          <p>
+            💯 本次考试得分：
+            <strong>{{ score }}</strong>
+            <span class="result-text">
+              （{{ score >= 60 ? "及格" : "不及格" }}）
+            </span>
+          </p>
         </div>
+
       </div>
     </div>
   </div>
@@ -58,7 +71,7 @@ onMounted(() => {
   setTimeout(() => {
     userStore.logout();
     router.replace("/login");
-  }, 3000);
+  }, 30000);
 });
 </script>
 
@@ -74,6 +87,32 @@ $text-gray: #555;
 $text-light: #888;
 $card-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 $card-shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.15);
+
+// ✅ 及格
+.pass-score {
+  strong {
+    color: $normal-color; // 绿色
+  }
+
+  .result-text {
+    color: $normal-color;
+    font-weight: 500;
+    margin-left: 6px;
+  }
+}
+
+// ❌ 不及格
+.fail-score {
+  strong {
+    color: $danger-color; // 红色
+  }
+
+  .result-text {
+    color: $danger-color;
+    font-weight: 500;
+    margin-left: 6px;
+  }
+}
 
 // 基础容器样式
 .submit-result-container {

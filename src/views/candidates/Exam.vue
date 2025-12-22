@@ -17,7 +17,7 @@
           <span class="stat-divider">|</span>
           <span class="stat-item">未答：<span class="stat-value">{{
             examPaper.topicNumber - answeredQuestions.length
-              }}</span>题</span>
+          }}</span>题</span>
         </div>
       </div>
     </div>
@@ -67,19 +67,8 @@
           </div>
         </div>
       </div>
-
       <div class="answer-sheet">
         <div class="sheet-header">答题卡</div>
-        <div class="sheet-content">
-          <div class="question-grid">
-            <div v-for="i in examPaper.topicNumber" :key="i" class="question-cell" :class="{
-              answered: answeredQuestions.includes(i),
-              current: currentQuestion === i,
-            }" @click="jumpToQuestion(i)">
-              {{ i }}
-            </div>
-          </div>
-        </div>
         <div class="sheet-footer">
           <div class="legend">
             <div class="legend-item">
@@ -91,12 +80,32 @@
               <span>已答题</span>
             </div>
             <div class="legend-item">
+              <span class="dot make"></span>
+              <span>标记</span>
+            </div>
+            <div class="legend-item">
               <span class="dot"></span>
               <span>未答题</span>
             </div>
           </div>
+        </div>
+        <div class="sheet-content">
+          <div class="question-grid">
+            <div v-for="i in examPaper.topicNumber" :key="i" class="question-cell" :class="{
+              answered: answeredQuestions.includes(i),
+              current: currentQuestion === i,
+              make: markedQuestions.includes(i),
+            }" @click="jumpToQuestion(i)">
+              {{ i }}
+            </div>
+          </div>
+          <div style="margin-top: 30px; text-align: right;">
+            <a-button type="dashed" status="danger" @click="mark">标记 / 取消</a-button>
+          </div>
+        </div>
+        <div class="sheet-footer">
           <div class="submit-section">
-            <button class="submit-btn" @click="submitExam">提交试卷</button>
+            <button class="submit-btn" @click="submitExam">交卷</button>
           </div>
         </div>
       </div>
@@ -132,6 +141,20 @@ const violationScreenshots = ref<string[]>([]);
 let startTime = dayjs();
 
 const optionLabels = ["A", "B", "C", "D", "E", "F", "G", "H"];
+const markedQuestions = ref<number[]>([]);
+
+const mark = () => {
+  const q = currentQuestion.value;
+
+  if (markedQuestions.value.includes(q)) {
+    // 取消标记
+    markedQuestions.value = markedQuestions.value.filter(i => i !== q);
+  } else {
+    // 添加标记
+    markedQuestions.value.push(q);
+  }
+};
+
 
 const updateTime = () => {
   // 考试总时长（分钟）
@@ -270,6 +293,10 @@ const submitPaper = async (violationType: number) => {
 };
 
 const submitExam = () => {
+  if (markedQuestions.value.length > 0) {
+    Message.warning("您有标记的题目未完成，建议先完成后再提交");
+    return;
+  }
   const allAnswered = examPaper.value.questions.every(
     (q) => q.userAnswer && q.userAnswer.length > 0
   );
@@ -719,6 +746,11 @@ const setHeight = (imageHeight) => {
   border-color: #1a73e8;
 }
 
+.question-cell.make {
+  background: #e6f7ff;
+  border-color: #fadb14;
+}
+
 .sheet-footer {
   padding: 15px;
   border-top: 1px solid #e8e8e8;
@@ -731,7 +763,7 @@ const setHeight = (imageHeight) => {
 .legend {
   display: flex;
   gap: 15px;
-  margin-bottom: 15px;
+  /* margin-bottom: 15px; */
 }
 
 .legend-item {
@@ -752,6 +784,11 @@ const setHeight = (imageHeight) => {
 .dot.current {
   background: #1a73e8;
   border-color: #1a73e8;
+}
+
+.dot.make {
+  background: #fadb14;
+  border-color: #fadb14;
 }
 
 .dot.answered {

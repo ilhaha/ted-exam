@@ -5,6 +5,16 @@ const BASE_URL = '/exam/examPlan'
 
 
 /**
+ * 根据考生身份证获取考生的所有考试准考证号
+ * @returns 
+ */
+export const getExamNumbersByIdCard = (data: any) => {
+  return http.get(`${BASE_URL}/examNumbers`, data)
+}
+
+
+
+/**
  * 获取考生信息
  * @returns 
  */

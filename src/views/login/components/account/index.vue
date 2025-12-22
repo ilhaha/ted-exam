@@ -4,8 +4,8 @@
     <a-form-item field="username" hide-label>
       <a-input v-model="form.username" placeholder="请输入身份证号" allow-clear />
     </a-form-item>
-    <a-form-item field="examNumber" hide-label>
-      <a-input v-model="form.examNumber" placeholder="请输入准考证号" allow-clear />
+    <a-form-item field="examNumber" hide-label v-if="showExamNumberChoose">
+      <a-cascader v-model="form.examNumber" :options="examNumberOptions" placeholder="请选择准考证号" allow-clear></a-cascader>
     </a-form-item>
     <!-- <a-form-item>
       <a-row justify="end" align="center" class="w-full">
@@ -18,7 +18,7 @@
       </a-space>
     </a-form-item>
   </a-form>
-<!-- 
+  <!-- 
   <a-modal v-model:visible="showProctorModal" title="请输入开考密码" :mask-closable="false" :closable="false" :footer="null">
     <a-input v-model="proctorPassword" type="password" max-length="6" placeholder="请输入开考密码"
       @keydown.enter="handleConfirmPassword" />
@@ -38,7 +38,10 @@ import { useRouter } from 'vue-router'
 import { useUserStore, useTabsStore } from '@/stores'
 import { useFullscreen } from '@vueuse/core'
 import { encryptByRsa } from '@/utils/encrypt'
+import { getExamNumbersByIdCard } from '@/apis/exam'
 
+const showExamNumberChoose = ref(false)
+const examNumberOptions = ref<Array<{ label: string; value: string }>>([])
 const formRef = ref()
 const form = reactive({
   username: '',
@@ -98,21 +101,43 @@ const handleCancel = () => {
   proctorPassword.value = ''
 }
 
-// 登录提交逻辑
+// 登录前通过身份证查询考生准考证
 const handleLogin = async () => {
-
   if ((await formRef.value?.validate())) return
-
   if (!/^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/.test(form.username)) {
     Message.error("身份证格式不正确")
     return
   }
+  try {
+    loading.value = true
+    if (showExamNumberChoose.value) {
+      sumitLogin()
+    } else {
+      const res = await getExamNumbersByIdCard({
+        username: encryptByRsa(form.username) || ''
+      })
+      if (res.data && res.data.length > 0) {
+        examNumberOptions.value = res.data
+        if (res.data.length === 1) {
+          showExamNumberChoose.value = false
+          form.examNumber = res.data[0].children[0].value
+          sumitLogin()
+        } else {
+          showExamNumberChoose.value = true
+          Message.info("请选择准考证")
+        }
+      } else {
+        Message.error("未查询到该身份证对应的考试信息，请确认后重新输入")
+      }
+    }
+  } finally {
+    loading.value = false
+  }
+}
 
-  // if(!/^\d{14}$/.test(form.examNumber)){
-  //   Message.error("准考证号为是14位数字")
-  //   return
-  // }  
-
+// 真正登录提交
+const sumitLogin = async () => {
+  if ((await formRef.value?.validate())) return
   try {
     await userStore.accountLogin({
       username: encryptByRsa(form.username) || '',
@@ -122,13 +147,20 @@ const handleLogin = async () => {
     })
     tabsStore.reset()
     await router.push('/candidates')
-    Message.success('欢迎使用')
+    Message.info('请确认考试信息后开始考试');
     // toggle()
   } catch (error) {
   } finally {
     loading.value = false
   }
 }
+
+// 监听身份证号变化
+watch(() => form.username, (newVal, oldVal) => {
+  form.examNumber = ''
+  examNumberOptions.value = []
+  showExamNumberChoose.value = false
+})
 </script>
 
 <style scoped lang="scss">
