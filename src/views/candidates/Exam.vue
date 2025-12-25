@@ -17,7 +17,7 @@
           <span class="stat-divider">|</span>
           <span class="stat-item">未答：<span class="stat-value">{{
             examPaper.topicNumber - answeredQuestions.length
-          }}</span>题</span>
+              }}</span>题</span>
         </div>
       </div>
     </div>
@@ -274,7 +274,7 @@ const submitPaper = async (violationType: number) => {
   await addRecord({
     planId: userStore.planId,
     candidateId: userStore.userInfo.id,
-    registrationProgress: 2,
+    registrationProgress: 3,
     examScores: totalScore,
     reviewStatus: 0,
     examPaper: JSON.stringify(examPaper.value),
@@ -348,16 +348,22 @@ const onScreenCaptured = async (_event, screenshots) => {
 
 // 系统监考
 const startInvigilating = () => {
-  if (userStore.enableProctorWarning) {
-    window.electronAPI.removeAllListeners?.('screen-captured');
+  if (!userStore.enableProctorWarning) return;
 
-    // 开启切屏截图
-    window.electronAPI.send('enable-screen-monitor');
+  // 先判断 electronAPI 是否存在
+  const electronAPI = window.electronAPI;
+  if (!electronAPI) return;
 
-    window.electronAPI.on('screen-captured', onScreenCaptured);
+  // 移除旧的监听，安全调用
+  electronAPI.removeAllListeners?.('screen-captured');
 
-  }
+  // 开启切屏截图
+  electronAPI.send?.('enable-screen-monitor');
+
+  // 添加新的监听
+  electronAPI.on?.('screen-captured', onScreenCaptured);
 };
+
 
 onMounted(async () => {
   startInvigilating();
@@ -371,13 +377,14 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  if (userStore.enableProctorWarning) {
-    // 关闭切屏截图
-    window.electronAPI.send('disable-screen-monitor');
-    window.electronAPI.removeAllListeners?.('screen-captured');
-    userStore.resetProctorCount();
+  if (!userStore.enableProctorWarning) return;
 
-  }
+  const electronAPI = window.electronAPI;
+  if (!electronAPI) return;
+  // 关闭切屏截图
+  window.electronAPI.send('disable-screen-monitor');
+  window.electronAPI.removeAllListeners?.('screen-captured');
+  userStore.resetProctorCount();
 });
 
 // 将图片base64转成文件上传

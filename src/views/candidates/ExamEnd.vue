@@ -40,12 +40,12 @@
           <li>💬 如有异议，可在规定时间内提出申诉</li>
         </ul>
 
-        <div class="score-info" :class="score >= 60 ? 'pass-score' : 'fail-score'">
+        <div class="score-info" :class="score >= 70 ? 'pass-score' : 'fail-score'">
           <p>
             💯 本次考试得分：
             <strong>{{ score }}</strong>
             <span class="result-text">
-              （{{ score >= 60 ? "及格" : "不及格" }}）
+              （{{ score >= 70 ? "及格" : "不及格" }}）
             </span>
           </p>
         </div>
