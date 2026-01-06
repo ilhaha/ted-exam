@@ -98,7 +98,6 @@ const columns: TableColumnData[] = [
     align: "center",
     fixed: !isMobile() ? "right" : undefined,
     show: has.hasPermOr([
-      "exam:examPlan:detail",
       "exam:examPlan:update",
       "exam:examPlan:delete",
     ]),

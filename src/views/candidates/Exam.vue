@@ -17,7 +17,7 @@
           <span class="stat-divider">|</span>
           <span class="stat-item">未答：<span class="stat-value">{{
             examPaper.topicNumber - answeredQuestions.length
-              }}</span>题</span>
+          }}</span>题</span>
         </div>
       </div>
     </div>
