@@ -17,7 +17,7 @@
           <span class="stat-divider">|</span>
           <span class="stat-item">未答：<span class="stat-value">{{
             examPaper.topicNumber - answeredQuestions.length
-          }}</span>题</span>
+              }}</span>题</span>
         </div>
       </div>
     </div>
@@ -105,7 +105,8 @@
         </div>
         <div class="sheet-footer">
           <div class="submit-section">
-            <button class="submit-btn" @click="submitExam">交卷</button>
+            <a-button type="primary" size="large" @click="submitExam" :loading="submitExamLodding"
+              :disabled="!canSubmitExam">交卷</a-button>
           </div>
         </div>
       </div>
@@ -132,6 +133,7 @@ const examPaper = ref<any>({
   questions: [],
   topicNumber: 0,
 });
+const submitExamLodding = ref(false)
 const currentQuestion = ref(1);
 const answeredQuestions = ref<number[]>([]);
 const timeLeft = ref("");
@@ -238,73 +240,96 @@ const hasSubmitted = ref(false);
 
 const submitPaper = async (violationType: number) => {
   if (hasSubmitted.value) return;
-  hasSubmitted.value = true;
-  let totalScore = 0;
+  try {
+    submitExamLodding.value = true
+    hasSubmitted.value = true;
+    let totalScore = 0;
 
-  for (let i = 0; i < examPaper.value.questions.length; i++) {
-    const question = examPaper.value.questions[i];
+    for (let i = 0; i < examPaper.value.questions.length; i++) {
+      const question = examPaper.value.questions[i];
 
-    if (question.questionType === 0 || question.questionType === 1) {
-      // 单选题或判断题
-      const selectedId = question.userAnswer?.[0];
-      const selectedOption = question.options.find(
-        (opt) => opt.id === selectedId
-      );
-      if (selectedOption?.isCorrectAnswer) {
-        totalScore += 1;
-      }
-    } else if (question.questionType === 2) {
-      // 多选题
-      const correctOptionIds = question.options
-        .filter((opt) => opt.isCorrectAnswer)
-        .map((opt) => opt.id)
-        .sort();
+      if (question.questionType === 0 || question.questionType === 1) {
+        // 单选题或判断题
+        const selectedId = question.userAnswer?.[0];
+        const selectedOption = question.options.find(
+          (opt) => opt.id === selectedId
+        );
+        if (selectedOption?.isCorrectAnswer) {
+          totalScore += 1;
+        }
+      } else if (question.questionType === 2) {
+        // 多选题
+        const correctOptionIds = question.options
+          .filter((opt) => opt.isCorrectAnswer)
+          .map((opt) => opt.id)
+          .sort();
 
-      const selectedOptionIds = (question.userAnswer || []).slice().sort();
+        const selectedOptionIds = (question.userAnswer || []).slice().sort();
 
-      const isCorrect =
-        correctOptionIds.length === selectedOptionIds.length &&
-        correctOptionIds.every((id, index) => id === selectedOptionIds[index]);
+        const isCorrect =
+          correctOptionIds.length === selectedOptionIds.length &&
+          correctOptionIds.every((id, index) => id === selectedOptionIds[index]);
 
-      if (isCorrect) {
-        totalScore += 1;
+        if (isCorrect) {
+          totalScore += 1;
+        }
       }
     }
-  }
-  await addRecord({
-    planId: userStore.planId,
-    candidateId: userStore.userInfo.id,
-    registrationProgress: 3,
-    examScores: totalScore,
-    reviewStatus: 0,
-    examPaper: JSON.stringify(examPaper.value),
-    violationType: violationType,
-    violationScreenshots: violationType == 0 ? [] : violationScreenshots.value
-  });
-
-  userStore.resetProctorCount()
-  await router.push({
-    path: "/examEnd",
-    query: {
+    await addRecord({
+      planId: userStore.planId,
+      candidateId: userStore.userInfo.id,
+      registrationProgress: 3,
+      examScores: totalScore,
+      reviewStatus: 0,
+      examPaper: JSON.stringify(examPaper.value),
       violationType: violationType,
-      score: totalScore
-    }
-  });
+      violationScreenshots: violationType == 0 ? [] : violationScreenshots.value
+    });
+
+    userStore.resetProctorCount()
+    await router.push({
+      path: "/examEnd",
+      query: {
+        violationType: violationType,
+        score: totalScore
+      }
+    });
+  } finally {
+    submitExamLodding.value = false
+  }
+
 };
+const unFinishedMarkedCount = computed(() => {
+  return markedQuestions.value.length;
+});
+const unAnsweredCount = computed(() => {
+  return examPaper.value.questions.filter(
+    q => !q.userAnswer || q.userAnswer.length === 0
+  ).length;
+});
+
+const canSubmitExam = computed(() => {
+  return (
+    unFinishedMarkedCount.value === 0 &&
+    unAnsweredCount.value === 0
+  );
+});
+
 
 const submitExam = () => {
-  if (markedQuestions.value.length > 0) {
-    Message.warning("您有标记的题目未完成，建议先完成后再提交");
-    return;
-  }
-  const allAnswered = examPaper.value.questions.every(
-    (q) => q.userAnswer && q.userAnswer.length > 0
-  );
-  if (!allAnswered) {
-    Message.warning("还有未作答的题目，请完成后再提交");
+  if (unFinishedMarkedCount.value > 0) {
+    Message.warning(
+      `您还有 ${unFinishedMarkedCount.value} 道标记题未完成，建议先完成后再提交`
+    );
     return;
   }
 
+  if (unAnsweredCount.value > 0) {
+    Message.warning(
+      `还有 ${unAnsweredCount.value} 道题未作答，请完成后再提交`
+    );
+    return;
+  }
   Modal.warning({
     title: "确认提交",
     content: "您确认要提交试卷吗？提交后不能修改！",

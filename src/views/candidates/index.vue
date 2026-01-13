@@ -78,7 +78,7 @@
   </div>
   <!-- 右上角退出按钮 -->
   <div class="top-right-exit">
-    <a-button status="danger" @click="handleExit">
+    <a-button status="danger" @click="handleExit" v-if="!showVideo">
       <template #icon><icon-export /></template>
       退出
     </a-button>
