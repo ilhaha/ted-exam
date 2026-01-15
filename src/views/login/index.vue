@@ -16,8 +16,7 @@
       </a-col>
       <a-col :xs="24" :sm="12" :md="11">
         <div class="login-right">
-          <EmailLogin v-if="isEmailLogin" />
-          <a-tabs v-else v-model:activeKey="activeTab" class="login-right__form">
+          <a-tabs v-model:activeKey="activeTab" class="login-right__form">
             <a-tab-pane key="1" title="考生登录">
               <component :is="AccountLogin" v-if="activeTab === '1'" />
             </a-tab-pane>
@@ -32,6 +31,7 @@
 
     <GiThemeBtn class="theme-btn" />
     <Background />
+    
   </div>
 </template>
 
