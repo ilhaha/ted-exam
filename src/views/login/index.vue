@@ -1,17 +1,22 @@
 <template>
   <div v-if="isDesktop" class="login pc">
     <h3 class="login-logo">
-      <img v-if="logo"
-        src="https://onedt-exam-system.oss-cn-shenzhen.aliyuncs.com/2025/12/17/6942110403843972e893861a.svg"
-        alt="logo" />
-      <img v-else src="https://onedt-exam-system.oss-cn-shenzhen.aliyuncs.com/2025/12/17/6942110403843972e893861a.svg"
-        alt="logo" />
+      <img v-if="logo" src="../../../public/logo.png" alt="logo" />
+      <img v-else src="../../../public/logo.png" />
       <span>{{ title }}</span>
     </h3>
     <a-row align="stretch" class="login-box">
       <a-col :xs="0" :sm="12" :md="13">
         <div class="login-left">
-          <img class="login-left__img" src="@/assets/images/banner.png" alt="banner" />
+          <h4>欢迎参加本次考试</h4>
+          <p>请使用身份证登录考试系统，选择本场考试的准考证开始考试。</p>
+          <ul>
+            <li>身份验证入场，杜绝替考，保障考试公平</li>
+            <li>实时监控考试状态，全程防作弊护航</li>
+            <li>答题进度自动保存，意外中断不丢失作答内容</li>
+            <li>考试时长倒计时提醒，合理分配答题时间</li>
+            <li>交卷后即时出分，清晰知晓考试结果</li>
+          </ul>
         </div>
       </a-col>
       <a-col :xs="24" :sm="12" :md="11">
@@ -31,7 +36,7 @@
 
     <GiThemeBtn class="theme-btn" />
     <Background />
-    
+
   </div>
 </template>
 
@@ -300,27 +305,114 @@ const onOauth = async (source: string) => {
   }
 
   .login-left {
-    width: 100%;
     height: 100%;
+    background: linear-gradient(180deg, #f0f5ff 0%, #e6f0ff 100%);
+    padding: 40px 30px;
+    color: #333;
+    box-sizing: border-box;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
+    border-radius: 8px 0 0 8px;
+    /* 与右侧卡片呼应圆角 */
     position: relative;
     overflow: hidden;
-    background: linear-gradient(60deg, rgb(var(--primary-6)), rgb(var(--primary-3)));
-
-    &__img {
-      width: 100%;
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      top: 50%;
-      left: 50%;
-      transform: translateX(-50%) translateY(-50%);
-      transition: all 0.3s;
-      object-fit: cover;
-    }
+    box-shadow: inset 0 0 15px rgba(22, 119, 255, 0.05);
+    /* 内阴影增强层次 */
   }
+
+  /* 装饰光点，提升氛围感 */
+  .login-left::before {
+    content: "";
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: 0;
+  }
+
+  .login-left h4 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #1677ff;
+    /* 主色突出标题 */
+    position: relative;
+    z-index: 1;
+  }
+
+  .login-left p {
+    margin-bottom: 24px;
+    font-size: 14px;
+    color: #666;
+    line-height: 1.7;
+    position: relative;
+    z-index: 1;
+  }
+
+  .login-left ul {
+    list-style: none;
+    padding: 0;
+    flex: 1;
+    /* 占满剩余高度 */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    /* 均匀分布，比space-between更自然 */
+    position: relative;
+    z-index: 1;
+  }
+
+  .login-left li {
+    display: flex;
+    align-items: flex-start;
+    font-size: 14px;
+    line-height: 1.8;
+    padding: 8px 0;
+    transition: transform 0.2s ease;
+    position: relative;
+  }
+
+  /* 美化勾选图标 */
+  .login-left li::before {
+    content: "✓";
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: #1677ff;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    box-shadow: 0 2px 6px rgba(22, 119, 255, 0.2);
+  }
+
+  /* hover交互效果 */
+  .login-left li:hover {
+    transform: translateX(5px);
+    color: #1677ff;
+  }
+
+  /* 列表项分隔线，增强规整度 */
+  .login-left li:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 32px;
+    /* 避开图标 */
+    width: calc(100% - 32px);
+    height: 1px;
+    background: linear-gradient(90deg, rgba(22, 119, 255, 0.1) 0%, transparent 100%);
+  }
+
 
   .login-right {
     width: 100%;
